@@ -1,0 +1,53 @@
+<?php
+session_start();
+
+require_once __DIR__ . '/../config.php';
+require_once ROOT_PATH . '/src/Database.php';
+require_once ROOT_PATH . '/src/Router.php';
+require_once ROOT_PATH . '/src/Auth.php';
+require_once ROOT_PATH . '/src/helpers.php';
+require_once ROOT_PATH . '/src/Controllers/HomeController.php';
+require_once ROOT_PATH . '/src/Controllers/ShopController.php';
+require_once ROOT_PATH . '/src/Controllers/CartController.php';
+require_once ROOT_PATH . '/src/Controllers/PaymentController.php';
+require_once ROOT_PATH . '/src/Controllers/AdminController.php';
+
+$router = new Router();
+
+$router->get('/', [HomeController::class, 'index']);
+$router->get('/boutique', [ShopController::class, 'index']);
+$router->get('/tableau/{slug}', [ShopController::class, 'show']);
+$router->get('/a-propos', [HomeController::class, 'about']);
+$router->get('/contact', [HomeController::class, 'contact']);
+$router->post('/contact', [HomeController::class, 'contactSubmit']);
+$router->get('/cgv', [HomeController::class, 'cgv']);
+
+$router->get('/panier', [CartController::class, 'index']);
+$router->post('/panier/ajouter', [CartController::class, 'add']);
+$router->post('/panier/supprimer', [CartController::class, 'remove']);
+$router->get('/commande', [CartController::class, 'checkout']);
+$router->post('/commande/valider', [PaymentController::class, 'process']);
+$router->get('/commande/confirmation/{id}', [PaymentController::class, 'confirmation']);
+
+$router->post('/webhook/stripe', [PaymentController::class, 'stripeWebhook']);
+$router->post('/webhook/paypal', [PaymentController::class, 'paypalWebhook']);
+
+$router->get('/admin/login', [AdminController::class, 'loginForm']);
+$router->post('/admin/login', [AdminController::class, 'login']);
+$router->get('/admin/logout', [AdminController::class, 'logout']);
+$router->get('/admin', [AdminController::class, 'dashboard']);
+$router->get('/admin/tableaux', [AdminController::class, 'paintings']);
+$router->get('/admin/tableaux/ajouter', [AdminController::class, 'addPaintingForm']);
+$router->post('/admin/tableaux/ajouter', [AdminController::class, 'addPainting']);
+$router->get('/admin/tableaux/modifier/{id}', [AdminController::class, 'editPaintingForm']);
+$router->post('/admin/tableaux/modifier/{id}', [AdminController::class, 'editPainting']);
+$router->post('/admin/tableaux/supprimer/{id}', [AdminController::class, 'deletePainting']);
+$router->post('/admin/api/generate-description', [AdminController::class, 'generateDescription']);
+$router->post('/admin/api/improve-text', [AdminController::class, 'improveText']);
+$router->get('/admin/commandes', [AdminController::class, 'orders']);
+$router->get('/admin/commandes/{id}', [AdminController::class, 'orderDetail']);
+$router->post('/admin/commandes/{id}/statut', [AdminController::class, 'updateOrderStatus']);
+$router->get('/admin/parametres', [AdminController::class, 'settings']);
+$router->post('/admin/parametres', [AdminController::class, 'saveSettings']);
+
+$router->resolve();
