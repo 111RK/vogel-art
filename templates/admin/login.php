@@ -38,7 +38,7 @@
 </head>
 <body>
     <div class="login-box">
-        <h1>Vogel <span style="color: var(--gold);">Art</span></h1>
+        <h1>Vogel <span style="color: var(--gold);">Art</span> Gallery</h1>
         <p class="subtitle">Administration</p>
 
         <?php if ($msg = flash('error')): ?>

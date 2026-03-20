@@ -13,7 +13,7 @@
 <body class="admin-body">
     <aside class="admin-sidebar">
         <div class="admin-logo">
-            <a href="/admin">Vogel <span>Art</span></a>
+            <a href="/admin">Vogel <span>Art</span> Gallery</a>
         </div>
         <nav class="admin-nav">
             <a href="/admin" class="<?= ($page ?? '') === 'dashboard' ? 'active' : '' ?>">Dashboard</a>

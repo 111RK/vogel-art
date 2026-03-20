@@ -12,7 +12,7 @@
 <body>
     <header>
         <div class="container">
-            <a href="/" class="logo">Vogel <span>Art</span></a>
+            <a href="/" class="logo">Vogel <span>Art</span> Gallery</a>
             <nav>
                 <a href="/">Accueil</a>
                 <a href="/boutique">Boutique</a>

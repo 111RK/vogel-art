@@ -13,7 +13,7 @@
 <body>
     <header>
         <div class="container">
-            <a href="/" class="logo">Vogel <span>Art</span></a>
+            <a href="/" class="logo">Vogel <span>Art</span> Gallery</a>
             <button class="hamburger" onclick="document.querySelector('nav').classList.toggle('active')">
                 <span></span><span></span><span></span>
             </button>
@@ -49,7 +49,7 @@
     <footer>
         <div class="container">
             <div>
-                <div class="footer-brand">Vogel <span>Art</span></div>
+                <div class="footer-brand">Vogel <span>Art</span> Gallery</div>
                 <p>Chaque toile est une pièce unique, peinte à la main avec passion.</p>
             </div>
             <div>
