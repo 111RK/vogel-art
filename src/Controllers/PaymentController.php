@@ -2,11 +2,76 @@
 class PaymentController
 {
     private static array $carrierLabels = [
-        'mondial_relay' => 'Mondial Relay',
+        'mondial_relay' => 'Mondial Relay (Point Relais)',
         'shop2shop' => 'Shop2Shop (Relais Colis)',
-        'ups' => 'UPS Standard',
-        'pickup' => 'Retrait à domicile / en main propre',
+        'ups' => 'UPS Standard (à domicile)',
+        'pickup' => 'Retrait en main propre',
     ];
+
+    private static array $relayCarriers = ['mondial_relay', 'shop2shop'];
+
+    public static function relayPoints(): void
+    {
+        header('Content-Type: application/json');
+
+        $postal = trim($_GET['postal'] ?? '');
+        $carrier = trim($_GET['carrier'] ?? '');
+
+        if (strlen($postal) < 5) {
+            echo json_encode(['error' => 'Code postal invalide.']);
+            return;
+        }
+
+        $apiKey = Database::fetch("SELECT value FROM settings WHERE `key` = 'packlink_api_key'");
+        if (empty($apiKey['value'])) {
+            echo json_encode(['error' => 'API Packlink non configurée.']);
+            return;
+        }
+
+        $serviceMap = [
+            'mondial_relay' => 'mondial_relay',
+            'shop2shop' => 'shop2shop',
+        ];
+
+        $url = 'https://apisandbox.packlink.com/v1/dropoffs?'
+            . http_build_query([
+                'service' => $serviceMap[$carrier] ?? 'mondial_relay',
+                'country' => 'FR',
+                'zip' => $postal,
+            ]);
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Authorization: ' . $apiKey['value'],
+            ],
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $data = json_decode($response, true);
+
+        if ($httpCode >= 200 && $httpCode < 300 && is_array($data)) {
+            $points = [];
+            foreach (array_slice($data, 0, 15) as $point) {
+                $points[] = [
+                    'id' => $point['id'] ?? $point['code'] ?? uniqid(),
+                    'name' => $point['name'] ?? $point['commerce_name'] ?? 'Point Relais',
+                    'address' => trim(
+                        ($point['address'] ?? $point['street'] ?? '') . ', '
+                        . ($point['zip'] ?? $point['zip_code'] ?? $postal) . ' '
+                        . ($point['city'] ?? '')
+                    ),
+                ];
+            }
+            echo json_encode(['points' => $points]);
+        } else {
+            echo json_encode(['error' => 'Impossible de récupérer les points relais. Vérifiez la clé API Packlink.', 'debug_code' => $httpCode]);
+        }
+    }
 
     public static function process(): void
     {
@@ -69,11 +134,20 @@ class PaymentController
         $shippingCost = floatval($config["shipping_{$shippingMethod}_price"] ?? 0);
         $total = $subtotal + $shippingCost;
 
+        $relayPointName = trim($_POST['relay_point_name'] ?? '');
+        $relayPointAddress = trim($_POST['relay_point_address'] ?? '');
+        $relayPointId = trim($_POST['relay_point_id'] ?? '');
+
+        $notes = '';
+        if ($relayPointName) {
+            $notes = 'Point relais : ' . $relayPointName . ' - ' . $relayPointAddress . ' (ID: ' . $relayPointId . ')';
+        }
+
         $orderNumber = 'VA-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -5));
 
         Database::query(
-            "INSERT INTO orders (order_number, customer_firstname, customer_lastname, customer_email, customer_phone, shipping_address, shipping_city, shipping_postal, total, payment_method, shipping_method, shipping_cost)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO orders (order_number, customer_firstname, customer_lastname, customer_email, customer_phone, shipping_address, shipping_city, shipping_postal, total, payment_method, shipping_method, shipping_cost, notes)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
                 $orderNumber,
                 trim($_POST['firstname']),
@@ -87,6 +161,7 @@ class PaymentController
                 $paymentMethod,
                 $shippingMethod,
                 $shippingCost,
+                $notes ?: null,
             ]
         );
 

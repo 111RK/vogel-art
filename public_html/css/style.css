@@ -492,6 +492,61 @@ nav a:hover::after {
     color: var(--success);
 }
 
+.relay-picker {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.relay-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.relay-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.relay-item:hover {
+    border-color: var(--gold);
+    background: var(--bg);
+}
+
+.relay-item.selected {
+    border-color: var(--gold);
+    background: var(--bg-warm);
+}
+
+.relay-item input[type="radio"] {
+    accent-color: var(--gold);
+    margin-top: 3px;
+}
+
+.relay-info {
+    flex: 1;
+}
+
+.relay-info strong {
+    display: block;
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+}
+
+.relay-info small {
+    color: var(--text-light);
+    font-size: 0.85rem;
+}
+
 .autocomplete-list {
     position: absolute;
     top: 100%;

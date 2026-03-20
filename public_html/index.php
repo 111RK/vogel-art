@@ -30,6 +30,7 @@ $router->get('/commande', [CartController::class, 'checkout']);
 $router->post('/commande/valider', [PaymentController::class, 'process']);
 $router->get('/commande/confirmation/{id}', [PaymentController::class, 'confirmation']);
 
+$router->get('/api/relay-points', [PaymentController::class, 'relayPoints']);
 $router->post('/webhook/stripe', [PaymentController::class, 'stripeWebhook']);
 $router->post('/webhook/paypal', [PaymentController::class, 'paypalWebhook']);
 
