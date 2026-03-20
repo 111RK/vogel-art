@@ -492,6 +492,32 @@ nav a:hover::after {
     color: var(--success);
 }
 
+.shipping-section-locked .shipping-methods {
+    display: none;
+}
+
+.shipping-section-locked .shipping-locked-msg {
+    display: block;
+}
+
+.shipping-section-unlocked .shipping-methods {
+    display: flex;
+}
+
+.shipping-section-unlocked .shipping-locked-msg {
+    display: none;
+}
+
+.shipping-locked-msg {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    font-style: italic;
+    padding: 16px;
+    background: var(--bg-warm);
+    border-radius: var(--radius);
+    text-align: center;
+}
+
 .shipping-block {
     margin-bottom: 0;
 }
@@ -512,26 +538,6 @@ nav a:hover::after {
 
 .shipping-block.relay-open .relay-panel {
     display: block;
-}
-
-.relay-search {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-}
-
-.relay-search input {
-    width: 140px;
-    padding: 8px 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 0.9rem;
-    font-family: inherit;
-}
-
-.relay-search input:focus {
-    outline: none;
-    border-color: var(--gold);
 }
 
 .relay-loading {
@@ -596,6 +602,13 @@ nav a:hover::after {
     font-size: 0.78rem;
     display: block;
     margin-top: 2px;
+}
+
+.relay-msg {
+    padding: 10px;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    text-align: center;
 }
 
 .autocomplete-list {

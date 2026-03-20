@@ -17,110 +17,74 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    var shippingSection = document.getElementById('shipping-section');
     var shippingOptions = document.querySelectorAll('.shipping-option');
     var shippingBlocks = document.querySelectorAll('.shipping-block');
     var summaryBox = document.querySelector('.order-summary');
     var shippingDisplay = document.getElementById('shipping-cost-display');
     var totalDisplay = document.getElementById('order-total-display');
     var postalInput = document.getElementById('postal');
+    var cityInput = document.getElementById('city');
+    var addressInput = document.getElementById('address');
+    var suggestionsBox = document.getElementById('address-suggestions');
+    var currentPostal = '';
 
-    if (shippingOptions.length > 0 && summaryBox) {
-        var subtotal = parseFloat(summaryBox.dataset.subtotal) || 0;
+    var subtotal = summaryBox ? (parseFloat(summaryBox.dataset.subtotal) || 0) : 0;
 
-        function updateShippingTotal() {
-            var checked = document.querySelector('input[name="shipping_method"]:checked');
-            if (!checked) return;
-            var price = parseFloat(checked.dataset.price) || 0;
-            if (shippingDisplay) shippingDisplay.textContent = price > 0 ? formatEur(price) : 'Gratuit';
-            if (totalDisplay) totalDisplay.textContent = formatEur(subtotal + price);
-        }
+    function unlockShipping() {
+        if (!shippingSection) return;
+        var postal = (postalInput ? postalInput.value.trim() : '');
+        var addr = (addressInput ? addressInput.value.trim() : '');
+        var city = (cityInput ? cityInput.value.trim() : '');
 
-        function handleShippingChange(clickedOption) {
-            shippingOptions.forEach(function (o) { o.classList.remove('active'); });
-            clickedOption.classList.add('active');
-            clickedOption.querySelector('input[type="radio"]').checked = true;
+        if (postal.length >= 5 && addr.length > 2 && city.length > 1) {
+            shippingSection.className = 'shipping-section-unlocked';
 
-            shippingBlocks.forEach(function (b) { b.classList.remove('relay-open'); });
-
-            var block = clickedOption.closest('.shipping-block');
-            var radio = clickedOption.querySelector('input[type="radio"]');
-            var needsRelay = radio.dataset.relay === '1';
-
-            if (needsRelay) {
-                block.classList.add('relay-open');
-                var relayPostalInput = block.querySelector('.relay-postal-input');
-                if (relayPostalInput && postalInput && postalInput.value.length >= 5) {
-                    relayPostalInput.value = postalInput.value;
-                    autoSearchRelay(block);
+            if (!document.querySelector('input[name="shipping_method"]:checked')) {
+                var firstRadio = document.querySelector('input[name="shipping_method"]');
+                if (firstRadio) {
+                    firstRadio.checked = true;
+                    firstRadio.closest('.shipping-option').classList.add('active');
+                    updateShippingTotal();
                 }
             }
 
-            document.getElementById('relay-point-id').value = '';
-            document.getElementById('relay-point-name').value = '';
-            document.getElementById('relay-point-address').value = '';
-
-            updateShippingTotal();
+            if (postal !== currentPostal) {
+                currentPostal = postal;
+                preloadRelayPoints(postal);
+            }
+        } else {
+            shippingSection.className = 'shipping-section-locked';
         }
-
-        shippingOptions.forEach(function (option) {
-            option.addEventListener('click', function (e) {
-                e.preventDefault();
-                handleShippingChange(option);
-            });
-        });
-
-        document.querySelectorAll('.relay-search-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                var block = btn.closest('.shipping-block');
-                searchRelayForBlock(block);
-            });
-        });
-
-        document.querySelectorAll('.relay-postal-input').forEach(function (input) {
-            input.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    var block = input.closest('.shipping-block');
-                    searchRelayForBlock(block);
-                }
-            });
-        });
-
-        updateShippingTotal();
     }
 
-    function autoSearchRelay(block) {
-        var postalVal = block.querySelector('.relay-postal-input').value;
-        if (postalVal.length >= 5) searchRelayForBlock(block);
+    function preloadRelayPoints(postal) {
+        document.querySelectorAll('.relay-panel').forEach(function (panel) {
+            var carrier = panel.dataset.carrier;
+            loadRelayPoints(panel, postal, carrier);
+        });
     }
 
-    function searchRelayForBlock(block) {
-        var postalVal = block.querySelector('.relay-postal-input').value.trim();
-        var carrier = block.querySelector('.relay-panel').dataset.carrier;
-        var results = block.querySelector('.relay-results');
-        var loading = block.querySelector('.relay-loading');
-
-        if (postalVal.length < 5) {
-            alert('Entrez un code postal valide (5 chiffres).');
-            return;
-        }
+    function loadRelayPoints(panel, postal, carrier) {
+        var results = panel.querySelector('.relay-results');
+        var loading = panel.querySelector('.relay-loading');
 
         loading.style.display = 'block';
         results.innerHTML = '';
 
-        fetch('/api/relay-points?postal=' + encodeURIComponent(postalVal) + '&carrier=' + encodeURIComponent(carrier))
+        fetch('/api/relay-points?postal=' + encodeURIComponent(postal) + '&carrier=' + encodeURIComponent(carrier))
             .then(function (res) { return res.json(); })
             .then(function (data) {
                 loading.style.display = 'none';
                 if (data.error) {
-                    results.innerHTML = '<p style="padding:8px;color:var(--text-light);font-size:0.9rem;">' + data.error + '</p>';
+                    results.innerHTML = '<p class="relay-msg">' + data.error + '</p>';
                     return;
                 }
                 if (!data.points || data.points.length === 0) {
-                    results.innerHTML = '<p style="padding:8px;color:var(--text-light);font-size:0.9rem;">Aucun point relais trouvé.</p>';
+                    results.innerHTML = '<p class="relay-msg">Aucun point relais trouvé.</p>';
                     return;
                 }
-                data.points.forEach(function (point, idx) {
+                data.points.forEach(function (point) {
                     var div = document.createElement('label');
                     div.className = 'relay-item';
                     div.innerHTML =
@@ -131,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             (point.hours ? '<span class="relay-hours">' + escapeHtml(point.hours) + '</span>' : '') +
                         '</div>';
                     div.addEventListener('click', function () {
-                        results.querySelectorAll('.relay-item').forEach(function (r) { r.classList.remove('selected'); });
+                        panel.querySelectorAll('.relay-item').forEach(function (r) { r.classList.remove('selected'); });
                         div.classList.add('selected');
                         document.getElementById('relay-point-id').value = point.id;
                         document.getElementById('relay-point-name').value = point.name;
@@ -142,27 +106,70 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .catch(function () {
                 loading.style.display = 'none';
-                results.innerHTML = '<p style="padding:8px;color:var(--error);font-size:0.9rem;">Erreur de connexion.</p>';
+                results.innerHTML = '<p class="relay-msg" style="color:var(--error)">Erreur de connexion.</p>';
             });
     }
+
+    function updateShippingTotal() {
+        var checked = document.querySelector('input[name="shipping_method"]:checked');
+        if (!checked) return;
+        var price = parseFloat(checked.dataset.price) || 0;
+        if (shippingDisplay) shippingDisplay.textContent = price > 0 ? formatEur(price) : 'Gratuit';
+        if (totalDisplay) totalDisplay.textContent = formatEur(subtotal + price);
+    }
+
+    function handleShippingChange(clickedOption) {
+        shippingOptions.forEach(function (o) { o.classList.remove('active'); });
+        clickedOption.classList.add('active');
+        clickedOption.querySelector('input[type="radio"]').checked = true;
+
+        shippingBlocks.forEach(function (b) { b.classList.remove('relay-open'); });
+
+        var block = clickedOption.closest('.shipping-block');
+        var radio = clickedOption.querySelector('input[type="radio"]');
+
+        if (radio.dataset.relay === '1') {
+            block.classList.add('relay-open');
+        }
+
+        document.getElementById('relay-point-id').value = '';
+        document.getElementById('relay-point-name').value = '';
+        document.getElementById('relay-point-address').value = '';
+        document.querySelectorAll('.relay-item.selected').forEach(function (r) { r.classList.remove('selected'); });
+
+        updateShippingTotal();
+    }
+
+    shippingOptions.forEach(function (option) {
+        option.addEventListener('click', function (e) {
+            e.preventDefault();
+            handleShippingChange(option);
+        });
+    });
+
+    if (postalInput) {
+        postalInput.addEventListener('input', unlockShipping);
+        postalInput.addEventListener('change', unlockShipping);
+    }
+    if (addressInput) addressInput.addEventListener('input', unlockShipping);
+    if (cityInput) cityInput.addEventListener('input', unlockShipping);
+
+    unlockShipping();
 
     function formatEur(val) {
         return val.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' \u20ac';
     }
 
     function escapeHtml(str) {
-        var div = document.createElement('div');
-        div.textContent = str || '';
-        return div.innerHTML;
+        var d = document.createElement('div');
+        d.textContent = str || '';
+        return d.innerHTML;
     }
 
     function escapeAttr(str) {
         return (str || '').replace(/"/g, '&quot;');
     }
 
-    var addressInput = document.getElementById('address');
-    var suggestionsBox = document.getElementById('address-suggestions');
-    var cityInput = document.getElementById('city');
     var debounceTimer = null;
 
     if (addressInput && suggestionsBox) {
@@ -191,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     if (postalInput) postalInput.value = props.postcode;
                                     suggestionsBox.classList.remove('active');
                                     suggestionsBox.innerHTML = '';
+                                    unlockShipping();
                                 });
                                 suggestionsBox.appendChild(item);
                             });
