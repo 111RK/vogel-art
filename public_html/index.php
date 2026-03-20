@@ -6,6 +6,7 @@ require_once ROOT_PATH . '/src/Database.php';
 require_once ROOT_PATH . '/src/Router.php';
 require_once ROOT_PATH . '/src/Auth.php';
 require_once ROOT_PATH . '/src/helpers.php';
+require_once ROOT_PATH . '/src/TextGenerator.php';
 require_once ROOT_PATH . '/src/Controllers/HomeController.php';
 require_once ROOT_PATH . '/src/Controllers/ShopController.php';
 require_once ROOT_PATH . '/src/Controllers/CartController.php';

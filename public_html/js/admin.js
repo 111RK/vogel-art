@@ -39,12 +39,14 @@ function generateDescription() {
     btn.disabled = true;
     btn.innerHTML = 'Génération en cours... <span class="loading-spinner"></span>';
 
+    var widthCm = document.getElementById('width_cm');
+    var heightCm = document.getElementById('height_cm');
+
     var formData = new FormData();
     formData.append('title', title);
     formData.append('technique', technique);
-    if (imageInput.files[0]) {
-        formData.append('image', imageInput.files[0]);
-    }
+    if (widthCm) formData.append('width_cm', widthCm.value);
+    if (heightCm) formData.append('height_cm', heightCm.value);
 
     fetch('/admin/api/generate-description', {
         method: 'POST',

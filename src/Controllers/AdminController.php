@@ -192,64 +192,17 @@ class AdminController
         Auth::requireAuth();
         header('Content-Type: application/json');
 
-        if (empty(CLAUDE_API_KEY)) {
-            echo json_encode(['error' => 'Clé API Claude non configurée.']);
+        $title = $_POST['title'] ?? '';
+        $technique = $_POST['technique'] ?? '';
+        $width = intval($_POST['width_cm'] ?? 0) ?: null;
+        $height = intval($_POST['height_cm'] ?? 0) ?: null;
+
+        if (empty($title)) {
+            echo json_encode(['error' => 'Veuillez renseigner un titre.']);
             return;
         }
 
-        $title = $_POST['title'] ?? '';
-        $technique = $_POST['technique'] ?? '';
-
-        $imageData = null;
-        if (!empty($_FILES['image']['tmp_name'])) {
-            $imageData = base64_encode(file_get_contents($_FILES['image']['tmp_name']));
-            $mimeType = $_FILES['image']['type'];
-        }
-
-        $prompt = "Tu es un expert en art. Décris ce tableau de manière poétique et commerciale en 2-3 phrases. Titre : \"$title\".";
-        if ($technique) $prompt .= " Technique : $technique.";
-        $prompt .= " La description doit donner envie d'acheter cette œuvre unique.";
-
-        $messages = [
-            ['role' => 'user', 'content' => []],
-        ];
-
-        if ($imageData) {
-            $messages[0]['content'][] = [
-                'type' => 'image',
-                'source' => [
-                    'type' => 'base64',
-                    'media_type' => $mimeType,
-                    'data' => $imageData,
-                ],
-            ];
-        }
-
-        $messages[0]['content'][] = [
-            'type' => 'text',
-            'text' => $prompt,
-        ];
-
-        $ch = curl_init('https://api.anthropic.com/v1/messages');
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_HTTPHEADER => [
-                'Content-Type: application/json',
-                'x-api-key: ' . CLAUDE_API_KEY,
-                'anthropic-version: 2023-06-01',
-            ],
-            CURLOPT_POSTFIELDS => json_encode([
-                'model' => CLAUDE_MODEL,
-                'max_tokens' => 300,
-                'messages' => $messages,
-            ]),
-        ]);
-
-        $response = json_decode(curl_exec($ch), true);
-        curl_close($ch);
-
-        $description = $response['content'][0]['text'] ?? 'Erreur lors de la génération.';
+        $description = TextGenerator::generateDescription($title, $technique, $width, $height);
         echo json_encode(['description' => $description]);
     }
 
@@ -258,47 +211,14 @@ class AdminController
         Auth::requireAuth();
         header('Content-Type: application/json');
 
-        if (empty(CLAUDE_API_KEY)) {
-            echo json_encode(['error' => 'Clé API Claude non configurée.']);
-            return;
-        }
-
         $text = $_POST['text'] ?? '';
-        $field = $_POST['field'] ?? '';
 
         if (empty($text)) {
             echo json_encode(['error' => 'Aucun texte fourni.']);
             return;
         }
 
-        $context = match ($field) {
-            'artist_bio' => "Tu es un rédacteur spécialisé en art. Améliore et corrige ce texte qui décrit le parcours d'un artiste peintre. Garde le même sens mais rends-le plus élégant, professionnel et engageant. Corrige les fautes.",
-            'about_text' => "Tu es un rédacteur spécialisé en art. Améliore et corrige ce texte de présentation d'un artiste peintre. Rends-le plus captivant et professionnel. Corrige les fautes.",
-            default => "Améliore et corrige ce texte. Garde le même sens mais rends-le plus professionnel. Corrige les fautes.",
-        };
-
-        $ch = curl_init('https://api.anthropic.com/v1/messages');
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_HTTPHEADER => [
-                'Content-Type: application/json',
-                'x-api-key: ' . CLAUDE_API_KEY,
-                'anthropic-version: 2023-06-01',
-            ],
-            CURLOPT_POSTFIELDS => json_encode([
-                'model' => CLAUDE_MODEL,
-                'max_tokens' => 1000,
-                'messages' => [
-                    ['role' => 'user', 'content' => $context . "\n\nTexte à améliorer :\n" . $text . "\n\nRéponds uniquement avec le texte amélioré, sans introduction ni explication."],
-                ],
-            ]),
-        ]);
-
-        $response = json_decode(curl_exec($ch), true);
-        curl_close($ch);
-
-        $improved = $response['content'][0]['text'] ?? 'Erreur lors de l\'amélioration.';
+        $improved = TextGenerator::improveText($text);
         echo json_encode(['text' => $improved]);
     }
 

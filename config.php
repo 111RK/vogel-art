@@ -18,8 +18,6 @@ define('TEMPLATE_PATH', __DIR__ . '/templates');
 define('MAX_UPLOAD_SIZE', 10 * 1024 * 1024);
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'webp']);
 
-define('CLAUDE_API_KEY', '');
-define('CLAUDE_MODEL', 'claude-sonnet-4-20250514');
 
 define('STRIPE_PUBLIC_KEY', '');
 define('STRIPE_SECRET_KEY', '');
