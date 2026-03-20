@@ -2,13 +2,13 @@
 
 define('DEBUG', false);
 
-define('SITE_URL', 'https://vogel-art.fr');
+define('SITE_URL', 'http://198.186.131.142');
 define('SITE_NAME', 'Vogel Art');
 
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'vogel_ar1_bdd');
-define('DB_USER', 'vogel_ar_1_user');
-define('DB_PASS', 'I&6U0/GVt+H09:*l');
+define('DB_USER', 'vogel_ar1');
+define('DB_PASS', 'kUo5zQjocxPn1bK6');
 
 define('ROOT_PATH', __DIR__);
 define('PUBLIC_PATH', __DIR__ . '/public_html');
@@ -33,5 +33,5 @@ define('BANK_BIC', '');
 define('BANK_NAME', '');
 
 ini_set('session.cookie_httponly', 1);
-ini_set('session.cookie_secure', 1);
+ini_set('session.cookie_secure', 0);
 ini_set('session.use_strict_mode', 1);
