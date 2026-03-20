@@ -244,9 +244,13 @@ class AdminController
             [(int)$id]
         );
 
+        $packlinkSettings = Database::fetchAll("SELECT `key`, `value` FROM settings WHERE `key` LIKE 'packlink_%' OR `key` LIKE 'default_parcel_%'");
+        $packlinkConfig = [];
+        foreach ($packlinkSettings as $s) $packlinkConfig[$s['key']] = $s['value'];
+
         $pageTitle = 'Commande #' . $order['order_number'];
         $page = 'orders';
-        renderAdmin('order-detail', compact('order', 'items', 'pageTitle', 'page'));
+        renderAdmin('order-detail', compact('order', 'items', 'packlinkConfig', 'pageTitle', 'page'));
     }
 
     public static function updateOrderStatus(string $id): void
@@ -269,6 +273,103 @@ class AdminController
 
         flash('success', 'Statut mis à jour.');
         redirect('/admin/commandes/' . $id);
+    }
+
+    public static function sendPacklink(): void
+    {
+        Auth::requireAuth();
+        header('Content-Type: application/json');
+
+        $orderId = (int)($_POST['order_id'] ?? 0);
+        $weight = floatval($_POST['weight'] ?? 2);
+        $dimensions = trim($_POST['dimensions'] ?? '60x50x10');
+
+        $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [$orderId]);
+        if (!$order) {
+            echo json_encode(['error' => 'Commande introuvable.']);
+            return;
+        }
+
+        $settings = Database::fetchAll("SELECT `key`, `value` FROM settings WHERE `key` LIKE 'packlink_%' OR `key` LIKE 'default_parcel_%'");
+        $config = [];
+        foreach ($settings as $s) $config[$s['key']] = $s['value'];
+
+        if (empty($config['packlink_api_key'])) {
+            echo json_encode(['error' => 'Clé API Packlink non configurée.']);
+            return;
+        }
+
+        $dims = explode('x', strtolower($dimensions));
+        $length = intval($dims[0] ?? 60);
+        $width = intval($dims[1] ?? 50);
+        $height = intval($dims[2] ?? 10);
+
+        $carrierMap = [
+            'mondial_relay' => 'mondial_relay',
+            'shop2shop' => 'shop2shop',
+            'ups' => 'ups',
+        ];
+
+        $payload = [
+            'from' => [
+                'name' => $config['packlink_sender_name'] ?? 'Vogel Art Gallery',
+                'street1' => $config['packlink_sender_address'] ?? '',
+                'zip_code' => $config['packlink_sender_postal'] ?? '',
+                'city' => $config['packlink_sender_city'] ?? '',
+                'country' => 'FR',
+                'email' => Database::fetch("SELECT value FROM settings WHERE `key` = 'contact_email'")['value'] ?? '',
+            ],
+            'to' => [
+                'name' => $order['customer_firstname'] . ' ' . $order['customer_lastname'],
+                'street1' => $order['shipping_address'],
+                'zip_code' => $order['shipping_postal'],
+                'city' => $order['shipping_city'],
+                'country' => 'FR',
+                'email' => $order['customer_email'],
+                'phone' => $order['customer_phone'] ?? '',
+            ],
+            'packages' => [
+                [
+                    'weight' => $weight,
+                    'length' => $length,
+                    'width' => $width,
+                    'height' => $height,
+                ],
+            ],
+            'content' => 'Tableau - Commande ' . $order['order_number'],
+            'content_value' => floatval($order['total']),
+            'source' => 'vogel-art',
+        ];
+
+        $ch = curl_init('https://apisandbox.packlink.com/v1/shipments');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Authorization: ' . $config['packlink_api_key'],
+            ],
+            CURLOPT_POSTFIELDS => json_encode($payload),
+        ]);
+
+        $response = json_decode(curl_exec($ch), true);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode >= 200 && $httpCode < 300 && isset($response['reference'])) {
+            Database::query(
+                "UPDATE orders SET shipping_tracking = ?, status = 'shipped' WHERE id = ?",
+                [$response['reference'], $orderId]
+            );
+            echo json_encode([
+                'success' => true,
+                'reference' => $response['reference'],
+                'message' => 'Expédition créée. Référence : ' . $response['reference'],
+            ]);
+        } else {
+            $errorMsg = $response['message'] ?? $response['messages'][0]['message'] ?? 'Erreur Packlink (HTTP ' . $httpCode . ')';
+            echo json_encode(['error' => $errorMsg, 'debug' => $response]);
+        }
     }
 
     public static function settings(): void
@@ -295,7 +396,8 @@ class AdminController
             'bank_iban', 'bank_bic', 'bank_name',
             'contact_email', 'contact_phone',
             'about_text', 'artist_bio', 'timeline_data', 'shipping_info',
-            'packlink_api_key',
+            'packlink_api_key', 'packlink_sender_name', 'packlink_sender_address', 'packlink_sender_city', 'packlink_sender_postal',
+            'default_parcel_weight', 'default_parcel_dimensions',
             'shipping_mondial_relay_price', 'shipping_shop2shop_price', 'shipping_ups_price', 'shipping_pickup_price',
         ];
 

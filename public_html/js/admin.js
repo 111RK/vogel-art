@@ -106,3 +106,41 @@ function improveText(fieldId) {
         btn.textContent = 'Améliorer avec l\'IA';
     });
 }
+
+function sendWithPacklink(orderId) {
+    var btn = event.target;
+    var weight = document.getElementById('parcel-weight').value;
+    var dimensions = document.getElementById('parcel-dimensions').value;
+    var resultDiv = document.getElementById('packlink-result');
+
+    btn.disabled = true;
+    btn.innerHTML = 'Envoi en cours... <span class="loading-spinner"></span>';
+    resultDiv.innerHTML = '';
+
+    var formData = new FormData();
+    formData.append('order_id', orderId);
+    formData.append('weight', weight);
+    formData.append('dimensions', dimensions);
+
+    fetch('/admin/api/send-packlink', {
+        method: 'POST',
+        body: formData
+    })
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+        if (data.success) {
+            resultDiv.innerHTML = '<div class="flash flash-success">' + data.message + '</div>';
+            var trackingInput = document.getElementById('shipping_tracking');
+            if (trackingInput) trackingInput.value = data.reference;
+        } else if (data.error) {
+            resultDiv.innerHTML = '<div class="flash flash-error">' + data.error + '</div>';
+        }
+    })
+    .catch(function () {
+        resultDiv.innerHTML = '<div class="flash flash-error">Erreur de connexion.</div>';
+    })
+    .finally(function () {
+        btn.disabled = false;
+        btn.textContent = 'Envoyer via Packlink';
+    });
+}

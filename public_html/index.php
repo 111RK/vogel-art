@@ -45,6 +45,7 @@ $router->post('/admin/tableaux/modifier/{id}', [AdminController::class, 'editPai
 $router->post('/admin/tableaux/supprimer/{id}', [AdminController::class, 'deletePainting']);
 $router->post('/admin/api/generate-description', [AdminController::class, 'generateDescription']);
 $router->post('/admin/api/improve-text', [AdminController::class, 'improveText']);
+$router->post('/admin/api/send-packlink', [AdminController::class, 'sendPacklink']);
 $router->get('/admin/commandes', [AdminController::class, 'orders']);
 $router->get('/admin/commandes/{id}', [AdminController::class, 'orderDetail']);
 $router->post('/admin/commandes/{id}/statut', [AdminController::class, 'updateOrderStatus']);

@@ -89,6 +89,37 @@
             <input type="password" id="packlink_api_key" name="packlink_api_key" value="<?= e($config['packlink_api_key'] ?? '') ?>" placeholder="Optionnel - pour la génération d'étiquettes">
         </div>
 
+        <div class="form-row" style="margin-top: 12px;">
+            <div class="form-group">
+                <label for="packlink_sender_name">Nom expéditeur</label>
+                <input type="text" id="packlink_sender_name" name="packlink_sender_name" value="<?= e($config['packlink_sender_name'] ?? '') ?>" placeholder="Vogel Art Gallery">
+            </div>
+            <div class="form-group">
+                <label for="packlink_sender_address">Adresse expéditeur</label>
+                <input type="text" id="packlink_sender_address" name="packlink_sender_address" value="<?= e($config['packlink_sender_address'] ?? '') ?>">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="packlink_sender_city">Ville</label>
+                <input type="text" id="packlink_sender_city" name="packlink_sender_city" value="<?= e($config['packlink_sender_city'] ?? '') ?>">
+            </div>
+            <div class="form-group">
+                <label for="packlink_sender_postal">Code postal</label>
+                <input type="text" id="packlink_sender_postal" name="packlink_sender_postal" value="<?= e($config['packlink_sender_postal'] ?? '') ?>">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="default_parcel_weight">Poids par défaut (kg)</label>
+                <input type="number" step="0.1" min="0.1" id="default_parcel_weight" name="default_parcel_weight" value="<?= e($config['default_parcel_weight'] ?? '2') ?>">
+            </div>
+            <div class="form-group">
+                <label for="default_parcel_dimensions">Dimensions par défaut (LxlxH cm)</label>
+                <input type="text" id="default_parcel_dimensions" name="default_parcel_dimensions" value="<?= e($config['default_parcel_dimensions'] ?? '60x50x10') ?>" placeholder="60x50x10">
+            </div>
+        </div>
+
         <div style="margin-top: 20px;">
             <h4 style="margin-bottom: 12px;">Transporteurs</h4>
 

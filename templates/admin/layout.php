@@ -7,8 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="/css/style.css?v=<?= filemtime(PUBLIC_PATH . '/css/style.css') ?>">
+    <link rel="stylesheet" href="/css/admin.css?v=<?= filemtime(PUBLIC_PATH . '/css/admin.css') ?>">
 </head>
 <body class="admin-body">
     <aside class="admin-sidebar">
@@ -43,6 +43,6 @@
         <?php require TEMPLATE_PATH . '/admin/' . $content . '.php'; ?>
     </main>
 
-    <script src="/js/admin.js"></script>
+    <script src="/js/admin.js?v=<?= filemtime(PUBLIC_PATH . '/js/admin.js') ?>"></script>
 </body>
 </html>

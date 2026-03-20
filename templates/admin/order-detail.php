@@ -49,12 +49,37 @@
             </div>
             <div class="form-group">
                 <label for="shipping_tracking">N° de suivi</label>
-                <input type="text" name="shipping_tracking" id="shipping_tracking" value="<?= e($order['shipping_tracking'] ?? '') ?>" placeholder="Numéro de suivi Packlink">
+                <input type="text" name="shipping_tracking" id="shipping_tracking" value="<?= e($order['shipping_tracking'] ?? '') ?>" placeholder="Numéro de suivi">
             </div>
             <button type="submit" class="btn btn-sm btn-primary">Mettre à jour</button>
         </form>
     </div>
 </div>
+
+<?php if (!empty($order['shipping_method']) && $order['shipping_method'] !== 'pickup'): ?>
+<div class="admin-card" style="margin-top: 24px;">
+    <h3>Expédition Packlink</h3>
+    <?php if (!empty($packlinkConfig['packlink_api_key'])): ?>
+        <p style="margin-bottom: 12px;">Créer une expédition via Packlink PRO avec les informations pré-remplies.</p>
+        <div class="form-row" style="margin-bottom: 12px;">
+            <div class="form-group">
+                <label>Poids (kg)</label>
+                <input type="number" step="0.1" min="0.1" id="parcel-weight" value="<?= e($packlinkConfig['default_parcel_weight'] ?? '2') ?>">
+            </div>
+            <div class="form-group">
+                <label>Dimensions L x l x H (cm)</label>
+                <input type="text" id="parcel-dimensions" value="<?= e($packlinkConfig['default_parcel_dimensions'] ?? '60x50x10') ?>" placeholder="60x50x10">
+            </div>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="sendWithPacklink(<?= $order['id'] ?>)">
+            Envoyer via Packlink
+        </button>
+        <div id="packlink-result" style="margin-top: 12px;"></div>
+    <?php else: ?>
+        <p style="color: var(--text-light);">Configurez votre clé API Packlink PRO dans les <a href="/admin/parametres">paramètres</a> pour activer l'expédition.</p>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
 
 <div class="admin-card" style="margin-top: 24px;">
     <h3>Articles</h3>
