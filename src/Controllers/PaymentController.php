@@ -2,18 +2,18 @@
 class PaymentController
 {
     private static array $carrierLabels = [
-        'mondial_relay' => 'Mondial Relay (Point Relais)',
-        'shop2shop' => 'Shop2Shop (Relais Colis)',
-        'ups' => 'UPS Standard (à domicile)',
         'pickup' => 'Retrait en main propre',
+        'mondial_relay' => 'Mondial Relay - Point Relais',
+        'shop2shop' => 'Chronopost - Shop2Shop',
+        'ups' => 'UPS - Access Point',
+        'mondial_relay_domicile' => 'Mondial Relay - Domicile',
     ];
-
-    private static array $relayCarriers = ['mondial_relay', 'shop2shop'];
 
     private static array $packlinkServiceIds = [
         'mondial_relay' => 30075,
         'shop2shop' => 21511,
         'ups' => 20991,
+        'mondial_relay_domicile' => 30407,
     ];
 
     public static function relayPoints(): void

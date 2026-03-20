@@ -125,8 +125,15 @@
 
             <div class="shipping-admin-row">
                 <label>
+                    <input type="checkbox" name="shipping_pickup_enabled" value="1" <?= ($config['shipping_pickup_enabled'] ?? '0') === '1' ? 'checked' : '' ?>>
+                    Retrait en main propre (gratuit)
+                </label>
+            </div>
+
+            <div class="shipping-admin-row">
+                <label>
                     <input type="checkbox" name="shipping_mondial_relay_enabled" value="1" <?= ($config['shipping_mondial_relay_enabled'] ?? '0') === '1' ? 'checked' : '' ?>>
-                    Mondial Relay
+                    Mondial Relay - Point Relais
                 </label>
                 <div class="form-group" style="display: inline-block; width: 120px; margin-left: 12px;">
                     <input type="number" step="0.01" min="0" name="shipping_mondial_relay_price" value="<?= e($config['shipping_mondial_relay_price'] ?? '6.90') ?>" placeholder="Prix">
@@ -137,7 +144,7 @@
             <div class="shipping-admin-row">
                 <label>
                     <input type="checkbox" name="shipping_shop2shop_enabled" value="1" <?= ($config['shipping_shop2shop_enabled'] ?? '0') === '1' ? 'checked' : '' ?>>
-                    Shop2Shop (Relais Colis)
+                    Chronopost - Shop2Shop
                 </label>
                 <div class="form-group" style="display: inline-block; width: 120px; margin-left: 12px;">
                     <input type="number" step="0.01" min="0" name="shipping_shop2shop_price" value="<?= e($config['shipping_shop2shop_price'] ?? '5.90') ?>" placeholder="Prix">
@@ -148,7 +155,7 @@
             <div class="shipping-admin-row">
                 <label>
                     <input type="checkbox" name="shipping_ups_enabled" value="1" <?= ($config['shipping_ups_enabled'] ?? '0') === '1' ? 'checked' : '' ?>>
-                    UPS Standard
+                    UPS - Access Point
                 </label>
                 <div class="form-group" style="display: inline-block; width: 120px; margin-left: 12px;">
                     <input type="number" step="0.01" min="0" name="shipping_ups_price" value="<?= e($config['shipping_ups_price'] ?? '12.90') ?>" placeholder="Prix">
@@ -158,9 +165,13 @@
 
             <div class="shipping-admin-row">
                 <label>
-                    <input type="checkbox" name="shipping_pickup_enabled" value="1" <?= ($config['shipping_pickup_enabled'] ?? '0') === '1' ? 'checked' : '' ?>>
-                    Retrait à domicile / en main propre (gratuit)
+                    <input type="checkbox" name="shipping_mondial_relay_domicile_enabled" value="1" <?= ($config['shipping_mondial_relay_domicile_enabled'] ?? '0') === '1' ? 'checked' : '' ?>>
+                    Mondial Relay - Domicile
                 </label>
+                <div class="form-group" style="display: inline-block; width: 120px; margin-left: 12px;">
+                    <input type="number" step="0.01" min="0" name="shipping_mondial_relay_domicile_price" value="<?= e($config['shipping_mondial_relay_domicile_price'] ?? '8.90') ?>" placeholder="Prix">
+                </div>
+                <span style="color: var(--text-light); font-size: 0.85rem;">EUR</span>
             </div>
         </div>
     </div>

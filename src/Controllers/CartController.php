@@ -101,9 +101,10 @@ class CartController
         $shippingOptions = [];
         $carriers = [
             'pickup' => ['label' => 'Retrait en main propre', 'relay' => false],
-            'mondial_relay' => ['label' => 'Mondial Relay (Point Relais)', 'relay' => true],
-            'shop2shop' => ['label' => 'Shop2Shop (Relais Colis)', 'relay' => true],
-            'ups' => ['label' => 'UPS Standard (à domicile)', 'relay' => false],
+            'mondial_relay' => ['label' => 'Mondial Relay - Point Relais', 'relay' => true],
+            'shop2shop' => ['label' => 'Chronopost - Shop2Shop', 'relay' => true],
+            'ups' => ['label' => 'UPS - Access Point', 'relay' => true],
+            'mondial_relay_domicile' => ['label' => 'Mondial Relay - Domicile', 'relay' => false],
         ];
         foreach ($carriers as $key => $info) {
             if (($config["shipping_{$key}_enabled"] ?? '0') === '1') {

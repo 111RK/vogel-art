@@ -398,7 +398,7 @@ class AdminController
             'about_text', 'artist_bio', 'timeline_data', 'shipping_info',
             'packlink_api_key', 'packlink_sender_name', 'packlink_sender_address', 'packlink_sender_city', 'packlink_sender_postal',
             'default_parcel_weight', 'default_parcel_dimensions',
-            'shipping_mondial_relay_price', 'shipping_shop2shop_price', 'shipping_ups_price', 'shipping_pickup_price',
+            'shipping_mondial_relay_price', 'shipping_shop2shop_price', 'shipping_ups_price', 'shipping_pickup_price', 'shipping_mondial_relay_domicile_price',
         ];
 
         foreach ($fields as $field) {
@@ -415,6 +415,7 @@ class AdminController
             'shipping_shop2shop_enabled',
             'shipping_ups_enabled',
             'shipping_pickup_enabled',
+            'shipping_mondial_relay_domicile_enabled',
         ];
         foreach ($checkboxes as $cb) {
             $val = isset($_POST[$cb]) ? '1' : '0';
