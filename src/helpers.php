@@ -8,6 +8,7 @@ function render(string $template, array $data = []): void
 
 function renderAdmin(string $template, array $data = []): void
 {
+    $data['content'] = $template;
     extract($data);
     require TEMPLATE_PATH . '/admin/layout.php';
 }
