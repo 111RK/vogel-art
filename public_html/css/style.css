@@ -492,59 +492,110 @@ nav a:hover::after {
     color: var(--success);
 }
 
-.relay-picker {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 24px;
+.shipping-block {
+    margin-bottom: 0;
 }
 
-.relay-list {
-    max-height: 300px;
+.relay-panel {
+    display: none;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    padding: 16px;
+    margin-top: -1px;
+}
+
+.shipping-block.relay-open .shipping-option {
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.shipping-block.relay-open .relay-panel {
+    display: block;
+}
+
+.relay-search {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.relay-search input {
+    width: 140px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+.relay-search input:focus {
+    outline: none;
+    border-color: var(--gold);
+}
+
+.relay-loading {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    padding: 12px;
+}
+
+.relay-results {
+    max-height: 260px;
     overflow-y: auto;
 }
 
 .relay-item {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
-    padding: 14px;
+    gap: 10px;
+    padding: 12px;
+    background: var(--white);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .relay-item:hover {
     border-color: var(--gold);
-    background: var(--bg);
 }
 
 .relay-item.selected {
     border-color: var(--gold);
-    background: var(--bg-warm);
+    box-shadow: 0 0 0 1px var(--gold);
 }
 
 .relay-item input[type="radio"] {
     accent-color: var(--gold);
-    margin-top: 3px;
+    margin-top: 2px;
+    flex-shrink: 0;
 }
 
 .relay-info {
     flex: 1;
+    min-width: 0;
 }
 
 .relay-info strong {
     display: block;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     margin-bottom: 2px;
 }
 
-.relay-info small {
+.relay-info .relay-address {
     color: var(--text-light);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+    display: block;
+}
+
+.relay-info .relay-hours {
+    color: var(--gold-dark);
+    font-size: 0.78rem;
+    display: block;
+    margin-top: 2px;
 }
 
 .autocomplete-list {

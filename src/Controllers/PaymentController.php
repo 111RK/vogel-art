@@ -10,6 +10,12 @@ class PaymentController
 
     private static array $relayCarriers = ['mondial_relay', 'shop2shop'];
 
+    private static array $packlinkServiceIds = [
+        'mondial_relay' => 30075,
+        'shop2shop' => 21511,
+        'ups' => 20991,
+    ];
+
     public static function relayPoints(): void
     {
         header('Content-Type: application/json');
@@ -24,21 +30,13 @@ class PaymentController
 
         $apiKey = Database::fetch("SELECT value FROM settings WHERE `key` = 'packlink_api_key'");
         if (empty($apiKey['value'])) {
-            echo json_encode(['error' => 'API Packlink non configurée.']);
+            echo json_encode(['error' => 'Configurez la clé API Packlink dans les paramètres admin.']);
             return;
         }
 
-        $serviceMap = [
-            'mondial_relay' => 'mondial_relay',
-            'shop2shop' => 'shop2shop',
-        ];
+        $serviceId = self::$packlinkServiceIds[$carrier] ?? self::$packlinkServiceIds['mondial_relay'];
 
-        $url = 'https://apisandbox.packlink.com/v1/dropoffs?'
-            . http_build_query([
-                'service' => $serviceMap[$carrier] ?? 'mondial_relay',
-                'country' => 'FR',
-                'zip' => $postal,
-            ]);
+        $url = "https://api.packlink.com/v1/dropoffs/$serviceId/FR/$postal";
 
         $ch = curl_init($url);
         curl_setopt_array($ch, [
@@ -54,22 +52,27 @@ class PaymentController
 
         $data = json_decode($response, true);
 
-        if ($httpCode >= 200 && $httpCode < 300 && is_array($data)) {
+        if ($httpCode === 200 && is_array($data)) {
             $points = [];
-            foreach (array_slice($data, 0, 15) as $point) {
+            foreach (array_slice($data, 0, 10) as $point) {
+                $hours = '';
+                if (!empty($point['opening_times']['opening_times'])) {
+                    $days = $point['opening_times']['opening_times'];
+                    $todayKey = strtolower(date('l'));
+                    if (isset($days[$todayKey])) {
+                        $hours = "Aujourd'hui : " . $days[$todayKey];
+                    }
+                }
                 $points[] = [
-                    'id' => $point['id'] ?? $point['code'] ?? uniqid(),
-                    'name' => $point['name'] ?? $point['commerce_name'] ?? 'Point Relais',
-                    'address' => trim(
-                        ($point['address'] ?? $point['street'] ?? '') . ', '
-                        . ($point['zip'] ?? $point['zip_code'] ?? $postal) . ' '
-                        . ($point['city'] ?? '')
-                    ),
+                    'id' => $point['id'] ?? uniqid(),
+                    'name' => $point['commerce_name'] ?? 'Point Relais',
+                    'address' => ($point['address'] ?? '') . ', ' . ($point['zip'] ?? $postal) . ' ' . ($point['city'] ?? ''),
+                    'hours' => $hours,
                 ];
             }
             echo json_encode(['points' => $points]);
         } else {
-            echo json_encode(['error' => 'Impossible de récupérer les points relais. Vérifiez la clé API Packlink.', 'debug_code' => $httpCode]);
+            echo json_encode(['error' => 'Aucun point relais trouvé.']);
         }
     }
 

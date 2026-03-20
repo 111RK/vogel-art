@@ -50,34 +50,32 @@
                 <h3 style="margin: 24px 0 16px;">Mode de livraison *</h3>
                 <div class="shipping-methods">
                     <?php foreach ($shippingOptions as $i => $option): ?>
-                        <label class="shipping-option <?= $i === 0 ? 'active' : '' ?>">
-                            <input type="radio" name="shipping_method" value="<?= e($option['key']) ?>" data-price="<?= $option['price'] ?>" data-relay="<?= $option['relay'] ? '1' : '0' ?>" <?= $i === 0 ? 'checked' : '' ?> required>
-                            <span class="shipping-label"><?= e($option['label']) ?></span>
-                            <?php if ($option['price'] > 0): ?>
-                                <span class="shipping-price"><?= formatPrice($option['price']) ?></span>
-                            <?php else: ?>
-                                <span class="shipping-price shipping-free">Gratuit</span>
+                        <div class="shipping-block">
+                            <label class="shipping-option <?= $i === 0 ? 'active' : '' ?>">
+                                <input type="radio" name="shipping_method" value="<?= e($option['key']) ?>" data-price="<?= $option['price'] ?>" data-relay="<?= $option['relay'] ? '1' : '0' ?>" <?= $i === 0 ? 'checked' : '' ?> required>
+                                <span class="shipping-label"><?= e($option['label']) ?></span>
+                                <?php if ($option['price'] > 0): ?>
+                                    <span class="shipping-price"><?= formatPrice($option['price']) ?></span>
+                                <?php else: ?>
+                                    <span class="shipping-price shipping-free">Gratuit</span>
+                                <?php endif; ?>
+                            </label>
+                            <?php if ($option['relay']): ?>
+                                <div class="relay-panel" data-carrier="<?= e($option['key']) ?>">
+                                    <div class="relay-search">
+                                        <input type="text" class="relay-postal-input" placeholder="Code postal" maxlength="5">
+                                        <button type="button" class="btn btn-sm btn-outline relay-search-btn">Rechercher</button>
+                                    </div>
+                                    <div class="relay-loading" style="display:none;">Recherche des points relais...</div>
+                                    <div class="relay-results"></div>
+                                </div>
                             <?php endif; ?>
-                        </label>
+                        </div>
                     <?php endforeach; ?>
                 </div>
-
-                <div id="relay-picker" class="relay-picker" style="display: none;">
-                    <h4 style="margin-bottom: 12px;">Choisir un point relais</h4>
-                    <div class="form-row" style="margin-bottom: 12px;">
-                        <div class="form-group">
-                            <input type="text" id="relay-search-postal" placeholder="Code postal" style="max-width: 160px;">
-                        </div>
-                        <div>
-                            <button type="button" class="btn btn-sm btn-outline" onclick="searchRelayPoints()">Rechercher</button>
-                        </div>
-                    </div>
-                    <div id="relay-loading" style="display: none; color: var(--text-light); padding: 12px;">Recherche en cours...</div>
-                    <div id="relay-list" class="relay-list"></div>
-                    <input type="hidden" name="relay_point_id" id="relay-point-id">
-                    <input type="hidden" name="relay_point_name" id="relay-point-name">
-                    <input type="hidden" name="relay_point_address" id="relay-point-address">
-                </div>
+                <input type="hidden" name="relay_point_id" id="relay-point-id">
+                <input type="hidden" name="relay_point_name" id="relay-point-name">
+                <input type="hidden" name="relay_point_address" id="relay-point-address">
                 <?php endif; ?>
             </div>
 

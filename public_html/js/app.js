@@ -18,11 +18,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     var shippingOptions = document.querySelectorAll('.shipping-option');
+    var shippingBlocks = document.querySelectorAll('.shipping-block');
     var summaryBox = document.querySelector('.order-summary');
     var shippingDisplay = document.getElementById('shipping-cost-display');
     var totalDisplay = document.getElementById('order-total-display');
-    var relayPicker = document.getElementById('relay-picker');
-    var relaySearchPostal = document.getElementById('relay-search-postal');
     var postalInput = document.getElementById('postal');
 
     if (shippingOptions.length > 0 && summaryBox) {
@@ -32,48 +31,133 @@ document.addEventListener('DOMContentLoaded', function () {
             var checked = document.querySelector('input[name="shipping_method"]:checked');
             if (!checked) return;
             var price = parseFloat(checked.dataset.price) || 0;
-            if (shippingDisplay) {
-                shippingDisplay.textContent = price > 0 ? formatEur(price) : 'Gratuit';
-            }
-            if (totalDisplay) {
-                totalDisplay.textContent = formatEur(subtotal + price);
-            }
+            if (shippingDisplay) shippingDisplay.textContent = price > 0 ? formatEur(price) : 'Gratuit';
+            if (totalDisplay) totalDisplay.textContent = formatEur(subtotal + price);
         }
 
-        function toggleRelayPicker() {
-            var checked = document.querySelector('input[name="shipping_method"]:checked');
-            if (!checked || !relayPicker) return;
-            var needsRelay = checked.dataset.relay === '1';
-            relayPicker.style.display = needsRelay ? 'block' : 'none';
+        function handleShippingChange(clickedOption) {
+            shippingOptions.forEach(function (o) { o.classList.remove('active'); });
+            clickedOption.classList.add('active');
+            clickedOption.querySelector('input[type="radio"]').checked = true;
 
-            if (needsRelay && postalInput && postalInput.value.length >= 5) {
-                relaySearchPostal.value = postalInput.value;
+            shippingBlocks.forEach(function (b) { b.classList.remove('relay-open'); });
+
+            var block = clickedOption.closest('.shipping-block');
+            var radio = clickedOption.querySelector('input[type="radio"]');
+            var needsRelay = radio.dataset.relay === '1';
+
+            if (needsRelay) {
+                block.classList.add('relay-open');
+                var relayPostalInput = block.querySelector('.relay-postal-input');
+                if (relayPostalInput && postalInput && postalInput.value.length >= 5) {
+                    relayPostalInput.value = postalInput.value;
+                    autoSearchRelay(block);
+                }
             }
 
-            if (!needsRelay) {
-                document.getElementById('relay-point-id').value = '';
-                document.getElementById('relay-point-name').value = '';
-                document.getElementById('relay-point-address').value = '';
-                document.getElementById('relay-list').innerHTML = '';
-            }
+            document.getElementById('relay-point-id').value = '';
+            document.getElementById('relay-point-name').value = '';
+            document.getElementById('relay-point-address').value = '';
+
+            updateShippingTotal();
         }
 
         shippingOptions.forEach(function (option) {
-            option.addEventListener('click', function () {
-                shippingOptions.forEach(function (o) { o.classList.remove('active'); });
-                option.classList.add('active');
-                option.querySelector('input[type="radio"]').checked = true;
-                updateShippingTotal();
-                toggleRelayPicker();
+            option.addEventListener('click', function (e) {
+                e.preventDefault();
+                handleShippingChange(option);
+            });
+        });
+
+        document.querySelectorAll('.relay-search-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var block = btn.closest('.shipping-block');
+                searchRelayForBlock(block);
+            });
+        });
+
+        document.querySelectorAll('.relay-postal-input').forEach(function (input) {
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    var block = input.closest('.shipping-block');
+                    searchRelayForBlock(block);
+                }
             });
         });
 
         updateShippingTotal();
-        toggleRelayPicker();
+    }
+
+    function autoSearchRelay(block) {
+        var postalVal = block.querySelector('.relay-postal-input').value;
+        if (postalVal.length >= 5) searchRelayForBlock(block);
+    }
+
+    function searchRelayForBlock(block) {
+        var postalVal = block.querySelector('.relay-postal-input').value.trim();
+        var carrier = block.querySelector('.relay-panel').dataset.carrier;
+        var results = block.querySelector('.relay-results');
+        var loading = block.querySelector('.relay-loading');
+
+        if (postalVal.length < 5) {
+            alert('Entrez un code postal valide (5 chiffres).');
+            return;
+        }
+
+        loading.style.display = 'block';
+        results.innerHTML = '';
+
+        fetch('/api/relay-points?postal=' + encodeURIComponent(postalVal) + '&carrier=' + encodeURIComponent(carrier))
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                loading.style.display = 'none';
+                if (data.error) {
+                    results.innerHTML = '<p style="padding:8px;color:var(--text-light);font-size:0.9rem;">' + data.error + '</p>';
+                    return;
+                }
+                if (!data.points || data.points.length === 0) {
+                    results.innerHTML = '<p style="padding:8px;color:var(--text-light);font-size:0.9rem;">Aucun point relais trouvé.</p>';
+                    return;
+                }
+                data.points.forEach(function (point, idx) {
+                    var div = document.createElement('label');
+                    div.className = 'relay-item';
+                    div.innerHTML =
+                        '<input type="radio" name="relay_selection" value="' + escapeAttr(point.id) + '">' +
+                        '<div class="relay-info">' +
+                            '<strong>' + escapeHtml(point.name) + '</strong>' +
+                            '<span class="relay-address">' + escapeHtml(point.address) + '</span>' +
+                            (point.hours ? '<span class="relay-hours">' + escapeHtml(point.hours) + '</span>' : '') +
+                        '</div>';
+                    div.addEventListener('click', function () {
+                        results.querySelectorAll('.relay-item').forEach(function (r) { r.classList.remove('selected'); });
+                        div.classList.add('selected');
+                        document.getElementById('relay-point-id').value = point.id;
+                        document.getElementById('relay-point-name').value = point.name;
+                        document.getElementById('relay-point-address').value = point.address;
+                    });
+                    results.appendChild(div);
+                });
+            })
+            .catch(function () {
+                loading.style.display = 'none';
+                results.innerHTML = '<p style="padding:8px;color:var(--error);font-size:0.9rem;">Erreur de connexion.</p>';
+            });
     }
 
     function formatEur(val) {
         return val.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' \u20ac';
+    }
+
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
+    }
+
+    function escapeAttr(str) {
+        return (str || '').replace(/"/g, '&quot;');
     }
 
     var addressInput = document.getElementById('address');
@@ -85,13 +169,11 @@ document.addEventListener('DOMContentLoaded', function () {
         addressInput.addEventListener('input', function () {
             clearTimeout(debounceTimer);
             var query = addressInput.value.trim();
-
             if (query.length < 3) {
                 suggestionsBox.classList.remove('active');
                 suggestionsBox.innerHTML = '';
                 return;
             }
-
             debounceTimer = setTimeout(function () {
                 fetch('https://api-adresse.data.gouv.fr/search/?q=' + encodeURIComponent(query) + '&limit=5')
                     .then(function (res) { return res.json(); })
@@ -107,7 +189,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                     addressInput.value = props.name;
                                     if (cityInput) cityInput.value = props.city;
                                     if (postalInput) postalInput.value = props.postcode;
-                                    if (relaySearchPostal) relaySearchPostal.value = props.postcode;
                                     suggestionsBox.classList.remove('active');
                                     suggestionsBox.innerHTML = '';
                                 });
@@ -118,9 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             suggestionsBox.classList.remove('active');
                         }
                     })
-                    .catch(function () {
-                        suggestionsBox.classList.remove('active');
-                    });
+                    .catch(function () { suggestionsBox.classList.remove('active'); });
             }, 300);
         });
 
@@ -131,58 +210,3 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
-
-function searchRelayPoints() {
-    var postal = document.getElementById('relay-search-postal').value.trim();
-    var relayList = document.getElementById('relay-list');
-    var loading = document.getElementById('relay-loading');
-    var shippingMethod = document.querySelector('input[name="shipping_method"]:checked');
-
-    if (!postal || postal.length < 5) {
-        alert('Veuillez entrer un code postal valide.');
-        return;
-    }
-
-    loading.style.display = 'block';
-    relayList.innerHTML = '';
-
-    var carrier = shippingMethod ? shippingMethod.value : 'mondial_relay';
-
-    fetch('/api/relay-points?postal=' + encodeURIComponent(postal) + '&carrier=' + encodeURIComponent(carrier))
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-            loading.style.display = 'none';
-            if (data.error) {
-                relayList.innerHTML = '<p style="color: var(--text-light); padding: 12px;">' + data.error + '</p>';
-                return;
-            }
-            if (!data.points || data.points.length === 0) {
-                relayList.innerHTML = '<p style="color: var(--text-light); padding: 12px;">Aucun point relais trouvé pour ce code postal.</p>';
-                return;
-            }
-            data.points.forEach(function (point) {
-                var div = document.createElement('label');
-                div.className = 'relay-item';
-                div.innerHTML = '<input type="radio" name="relay_selection" value="' + point.id + '" data-name="' + escapeHtml(point.name) + '" data-address="' + escapeHtml(point.address) + '">' +
-                    '<div class="relay-info"><strong>' + escapeHtml(point.name) + '</strong><small>' + escapeHtml(point.address) + '</small></div>';
-                div.addEventListener('click', function () {
-                    document.querySelectorAll('.relay-item').forEach(function (r) { r.classList.remove('selected'); });
-                    div.classList.add('selected');
-                    document.getElementById('relay-point-id').value = point.id;
-                    document.getElementById('relay-point-name').value = point.name;
-                    document.getElementById('relay-point-address').value = point.address;
-                });
-                relayList.appendChild(div);
-            });
-        })
-        .catch(function () {
-            loading.style.display = 'none';
-            relayList.innerHTML = '<p style="color: var(--error); padding: 12px;">Erreur lors de la recherche.</p>';
-        });
-}
-
-function escapeHtml(str) {
-    var div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-}
