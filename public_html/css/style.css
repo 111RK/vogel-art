@@ -452,6 +452,45 @@ nav a:hover::after {
     accent-color: var(--gold);
 }
 
+.autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 50;
+    display: none;
+    box-shadow: var(--shadow);
+}
+
+.autocomplete-list.active {
+    display: block;
+}
+
+.autocomplete-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-item:hover {
+    background: var(--bg-warm);
+}
+
+.autocomplete-item small {
+    color: var(--text-light);
+}
+
 .flash {
     padding: 14px 20px;
     border-radius: var(--radius);

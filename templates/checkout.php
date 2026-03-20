@@ -29,9 +29,10 @@
                     <input type="tel" id="phone" name="phone">
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="position: relative;">
                     <label for="address">Adresse *</label>
-                    <input type="text" id="address" name="address" required>
+                    <input type="text" id="address" name="address" required autocomplete="off" placeholder="Commencez à taper votre adresse...">
+                    <div id="address-suggestions" class="autocomplete-list"></div>
                 </div>
 
                 <div class="form-row">
