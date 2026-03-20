@@ -82,5 +82,57 @@
         </div>
     </div>
 
+    <div class="admin-card">
+        <h3>Livraison (Packlink)</h3>
+        <div class="form-group">
+            <label for="packlink_api_key">Clé API Packlink PRO</label>
+            <input type="password" id="packlink_api_key" name="packlink_api_key" value="<?= e($config['packlink_api_key'] ?? '') ?>" placeholder="Optionnel - pour la génération d'étiquettes">
+        </div>
+
+        <div style="margin-top: 20px;">
+            <h4 style="margin-bottom: 12px;">Transporteurs</h4>
+
+            <div class="shipping-admin-row">
+                <label>
+                    <input type="checkbox" name="shipping_mondial_relay_enabled" value="1" <?= ($config['shipping_mondial_relay_enabled'] ?? '0') === '1' ? 'checked' : '' ?>>
+                    Mondial Relay
+                </label>
+                <div class="form-group" style="display: inline-block; width: 120px; margin-left: 12px;">
+                    <input type="number" step="0.01" min="0" name="shipping_mondial_relay_price" value="<?= e($config['shipping_mondial_relay_price'] ?? '6.90') ?>" placeholder="Prix">
+                </div>
+                <span style="color: var(--text-light); font-size: 0.85rem;">EUR</span>
+            </div>
+
+            <div class="shipping-admin-row">
+                <label>
+                    <input type="checkbox" name="shipping_shop2shop_enabled" value="1" <?= ($config['shipping_shop2shop_enabled'] ?? '0') === '1' ? 'checked' : '' ?>>
+                    Shop2Shop (Relais Colis)
+                </label>
+                <div class="form-group" style="display: inline-block; width: 120px; margin-left: 12px;">
+                    <input type="number" step="0.01" min="0" name="shipping_shop2shop_price" value="<?= e($config['shipping_shop2shop_price'] ?? '5.90') ?>" placeholder="Prix">
+                </div>
+                <span style="color: var(--text-light); font-size: 0.85rem;">EUR</span>
+            </div>
+
+            <div class="shipping-admin-row">
+                <label>
+                    <input type="checkbox" name="shipping_ups_enabled" value="1" <?= ($config['shipping_ups_enabled'] ?? '0') === '1' ? 'checked' : '' ?>>
+                    UPS Standard
+                </label>
+                <div class="form-group" style="display: inline-block; width: 120px; margin-left: 12px;">
+                    <input type="number" step="0.01" min="0" name="shipping_ups_price" value="<?= e($config['shipping_ups_price'] ?? '12.90') ?>" placeholder="Prix">
+                </div>
+                <span style="color: var(--text-light); font-size: 0.85rem;">EUR</span>
+            </div>
+
+            <div class="shipping-admin-row">
+                <label>
+                    <input type="checkbox" name="shipping_pickup_enabled" value="1" <?= ($config['shipping_pickup_enabled'] ?? '0') === '1' ? 'checked' : '' ?>>
+                    Retrait à domicile / en main propre (gratuit)
+                </label>
+            </div>
+        </div>
+    </div>
+
     <button type="submit" class="btn btn-primary">Enregistrer les paramètres</button>
 </form>

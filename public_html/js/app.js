@@ -17,6 +17,42 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    var shippingOptions = document.querySelectorAll('.shipping-option');
+    var summaryBox = document.querySelector('.order-summary');
+    var shippingDisplay = document.getElementById('shipping-cost-display');
+    var totalDisplay = document.getElementById('order-total-display');
+
+    if (shippingOptions.length > 0 && summaryBox) {
+        var subtotal = parseFloat(summaryBox.dataset.subtotal) || 0;
+
+        function updateShippingTotal() {
+            var checked = document.querySelector('input[name="shipping_method"]:checked');
+            if (!checked) return;
+            var price = parseFloat(checked.dataset.price) || 0;
+            if (shippingDisplay) {
+                shippingDisplay.textContent = price > 0 ? formatEur(price) : 'Gratuit';
+            }
+            if (totalDisplay) {
+                totalDisplay.textContent = formatEur(subtotal + price);
+            }
+        }
+
+        shippingOptions.forEach(function (option) {
+            option.addEventListener('click', function () {
+                shippingOptions.forEach(function (o) { o.classList.remove('active'); });
+                option.classList.add('active');
+                option.querySelector('input[type="radio"]').checked = true;
+                updateShippingTotal();
+            });
+        });
+
+        updateShippingTotal();
+    }
+
+    function formatEur(val) {
+        return val.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' \u20ac';
+    }
+
     var addressInput = document.getElementById('address');
     var suggestionsBox = document.getElementById('address-suggestions');
     var cityInput = document.getElementById('city');

@@ -1,6 +1,13 @@
 <?php
 class PaymentController
 {
+    private static array $carrierLabels = [
+        'mondial_relay' => 'Mondial Relay',
+        'shop2shop' => 'Shop2Shop (Relais Colis)',
+        'ups' => 'UPS Standard',
+        'pickup' => 'Retrait à domicile / en main propre',
+    ];
+
     public static function process(): void
     {
         if (!verify_csrf()) {
@@ -12,8 +19,7 @@ class PaymentController
             redirect('/panier');
         }
 
-        // Valider les champs
-        $required = ['firstname', 'lastname', 'email', 'address', 'city', 'postal', 'payment_method'];
+        $required = ['firstname', 'lastname', 'email', 'address', 'city', 'postal', 'payment_method', 'shipping_method'];
         foreach ($required as $field) {
             if (empty(trim($_POST[$field] ?? ''))) {
                 flash('error', 'Veuillez remplir tous les champs obligatoires.');
@@ -21,9 +27,8 @@ class PaymentController
             }
         }
 
-        // Récupérer les articles
         $items = [];
-        $total = 0;
+        $subtotal = 0;
         foreach ($cart as $paintingId) {
             $painting = Database::fetch(
                 "SELECT * FROM paintings WHERE id = ? AND status = 'available'",
@@ -31,7 +36,7 @@ class PaymentController
             );
             if ($painting) {
                 $items[] = $painting;
-                $total += $painting['price'];
+                $subtotal += $painting['price'];
             }
         }
 
@@ -46,12 +51,29 @@ class PaymentController
             redirect('/commande');
         }
 
-        // Créer la commande
+        $shippingMethod = $_POST['shipping_method'];
+        if (!array_key_exists($shippingMethod, self::$carrierLabels)) {
+            flash('error', 'Mode de livraison invalide.');
+            redirect('/commande');
+        }
+
+        $settings = Database::fetchAll("SELECT `key`, `value` FROM settings");
+        $config = [];
+        foreach ($settings as $s) $config[$s['key']] = $s['value'];
+
+        if (($config["shipping_{$shippingMethod}_enabled"] ?? '0') !== '1') {
+            flash('error', 'Ce mode de livraison n\'est pas disponible.');
+            redirect('/commande');
+        }
+
+        $shippingCost = floatval($config["shipping_{$shippingMethod}_price"] ?? 0);
+        $total = $subtotal + $shippingCost;
+
         $orderNumber = 'VA-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -5));
 
         Database::query(
-            "INSERT INTO orders (order_number, customer_firstname, customer_lastname, customer_email, customer_phone, shipping_address, shipping_city, shipping_postal, total, payment_method)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO orders (order_number, customer_firstname, customer_lastname, customer_email, customer_phone, shipping_address, shipping_city, shipping_postal, total, payment_method, shipping_method, shipping_cost)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
                 $orderNumber,
                 trim($_POST['firstname']),
@@ -63,28 +85,26 @@ class PaymentController
                 trim($_POST['postal']),
                 $total,
                 $paymentMethod,
+                $shippingMethod,
+                $shippingCost,
             ]
         );
 
         $orderId = Database::lastInsertId();
 
-        // Ajouter les articles
         foreach ($items as $painting) {
             Database::query(
                 "INSERT INTO order_items (order_id, painting_id, title, price) VALUES (?, ?, ?, ?)",
                 [$orderId, $painting['id'], $painting['title'], $painting['price']]
             );
-            // Marquer le tableau comme vendu
             Database::query(
                 "UPDATE paintings SET status = 'sold' WHERE id = ?",
                 [$painting['id']]
             );
         }
 
-        // Vider le panier
         $_SESSION['cart'] = [];
 
-        // Selon le mode de paiement
         switch ($paymentMethod) {
             case 'stripe':
                 self::handleStripe($orderId, $total);
@@ -99,6 +119,11 @@ class PaymentController
         }
     }
 
+    public static function carrierLabel(string $key): string
+    {
+        return self::$carrierLabels[$key] ?? $key;
+    }
+
     private static function handleStripe(int $orderId, float $total): void
     {
         $settings = Database::fetchAll("SELECT `key`, `value` FROM settings WHERE `key` LIKE 'stripe_%'");
@@ -111,7 +136,6 @@ class PaymentController
             return;
         }
 
-        // Créer une session Stripe via cURL
         $ch = curl_init('https://api.stripe.com/v1/checkout/sessions');
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
@@ -148,7 +172,6 @@ class PaymentController
 
     private static function handlePaypal(int $orderId, float $total): void
     {
-        // Rediriger vers la page de confirmation avec instructions PayPal
         redirect('/commande/confirmation/' . $orderId);
     }
 
@@ -170,7 +193,6 @@ class PaymentController
             [(int)$id]
         );
 
-        // Vérifier le retour Stripe
         if (isset($_GET['payment']) && $_GET['payment'] === 'success') {
             Database::query(
                 "UPDATE orders SET payment_status = 'paid', status = 'confirmed' WHERE id = ?",

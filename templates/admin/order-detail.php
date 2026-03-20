@@ -20,6 +20,13 @@
         <p><strong>N° :</strong> <?= e($order['order_number']) ?></p>
         <p><strong>Date :</strong> <?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></p>
         <p><strong>Mode de paiement :</strong> <?= e($order['payment_method']) ?></p>
+        <?php if (!empty($order['shipping_method'])): ?>
+            <p><strong>Livraison :</strong> <?= e(PaymentController::carrierLabel($order['shipping_method'])) ?></p>
+            <p><strong>Frais de port :</strong> <?= formatPrice($order['shipping_cost'] ?? 0) ?></p>
+        <?php endif; ?>
+        <?php if (!empty($order['shipping_tracking'])): ?>
+            <p><strong>N° suivi :</strong> <?= e($order['shipping_tracking']) ?></p>
+        <?php endif; ?>
         <p><strong>Total :</strong> <?= formatPrice($order['total']) ?></p>
 
         <form method="POST" action="/admin/commandes/<?= $order['id'] ?>/statut" style="margin-top: 16px;">
@@ -39,6 +46,10 @@
                         <option value="<?= $s ?>" <?= $order['status'] === $s ? 'selected' : '' ?>><?= $s ?></option>
                     <?php endforeach; ?>
                 </select>
+            </div>
+            <div class="form-group">
+                <label for="shipping_tracking">N° de suivi</label>
+                <input type="text" name="shipping_tracking" id="shipping_tracking" value="<?= e($order['shipping_tracking'] ?? '') ?>" placeholder="Numéro de suivi Packlink">
             </div>
             <button type="submit" class="btn btn-sm btn-primary">Mettre à jour</button>
         </form>

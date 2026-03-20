@@ -45,21 +45,49 @@
                         <input type="text" id="postal" name="postal" required>
                     </div>
                 </div>
+
+                <?php if (!empty($shippingOptions)): ?>
+                <h3 style="margin: 24px 0 16px;">Mode de livraison *</h3>
+                <div class="shipping-methods">
+                    <?php foreach ($shippingOptions as $i => $option): ?>
+                        <label class="shipping-option <?= $i === 0 ? 'active' : '' ?>">
+                            <input type="radio" name="shipping_method" value="<?= e($option['key']) ?>" data-price="<?= $option['price'] ?>" <?= $i === 0 ? 'checked' : '' ?> required>
+                            <span class="shipping-label"><?= e($option['label']) ?></span>
+                            <?php if ($option['price'] > 0): ?>
+                                <span class="shipping-price"><?= formatPrice($option['price']) ?></span>
+                            <?php else: ?>
+                                <span class="shipping-price shipping-free">Gratuit</span>
+                            <?php endif; ?>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
             </div>
 
             <div>
                 <h3 style="margin-bottom: 20px;">Récapitulatif</h3>
 
-                <div class="order-summary">
+                <div class="order-summary" data-subtotal="<?= $total ?>">
                     <?php foreach ($items as $item): ?>
                         <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
                             <span><?= e($item['title']) ?></span>
                             <strong><?= formatPrice($item['price']) ?></strong>
                         </div>
                     <?php endforeach; ?>
+
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); color: var(--text-light);">
+                        <span>Livraison</span>
+                        <span id="shipping-cost-display">
+                            <?php
+                            $defaultShipping = !empty($shippingOptions) ? $shippingOptions[0]['price'] : 0;
+                            echo $defaultShipping > 0 ? formatPrice($defaultShipping) : 'Gratuit';
+                            ?>
+                        </span>
+                    </div>
+
                     <div style="display: flex; justify-content: space-between; padding: 16px 0; font-size: 1.2rem;">
                         <span>Total</span>
-                        <strong style="color: var(--gold-dark);"><?= formatPrice($total) ?></strong>
+                        <strong style="color: var(--gold-dark);" id="order-total-display"><?= formatPrice($total + $defaultShipping) ?></strong>
                     </div>
                 </div>
 

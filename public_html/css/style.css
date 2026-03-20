@@ -452,6 +452,46 @@ nav a:hover::after {
     accent-color: var(--gold);
 }
 
+.shipping-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.shipping-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.shipping-option:hover,
+.shipping-option.active {
+    border-color: var(--gold);
+}
+
+.shipping-option input[type="radio"] {
+    accent-color: var(--gold);
+}
+
+.shipping-label {
+    flex: 1;
+}
+
+.shipping-price {
+    font-weight: 600;
+    color: var(--gold-dark);
+}
+
+.shipping-free {
+    color: var(--success);
+}
+
 .autocomplete-list {
     position: absolute;
     top: 100%;

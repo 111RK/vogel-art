@@ -41,6 +41,9 @@ CREATE TABLE IF NOT EXISTS `orders` (
     `payment_status` ENUM('pending', 'paid', 'failed', 'refunded') DEFAULT 'pending',
     `payment_id` VARCHAR(255) DEFAULT NULL,
     `status` ENUM('pending', 'confirmed', 'shipped', 'delivered', 'cancelled') DEFAULT 'pending',
+    `shipping_method` VARCHAR(50) DEFAULT NULL,
+    `shipping_cost` DECIMAL(10,2) DEFAULT 0.00,
+    `shipping_tracking` VARCHAR(255) DEFAULT NULL,
     `notes` TEXT DEFAULT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -75,7 +78,16 @@ INSERT INTO `settings` (`key`, `value`) VALUES
 ('about_text', 'Artiste peintre passionné, chaque toile est une pièce unique.'),
 ('shipping_info', 'Livraison en France métropolitaine. Contactez-nous pour les envois internationaux.'),
 ('artist_bio', ''),
-('timeline_data', '')
+('timeline_data', ''),
+('packlink_api_key', ''),
+('shipping_mondial_relay_price', '6.90'),
+('shipping_mondial_relay_enabled', '1'),
+('shipping_shop2shop_price', '5.90'),
+('shipping_shop2shop_enabled', '1'),
+('shipping_ups_price', '12.90'),
+('shipping_ups_enabled', '1'),
+('shipping_pickup_price', '0'),
+('shipping_pickup_enabled', '1')
 ON DUPLICATE KEY UPDATE `key`=`key`;
 
 INSERT INTO `admin_users` (`name`, `email`, `password`) VALUES

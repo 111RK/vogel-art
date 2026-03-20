@@ -98,8 +98,25 @@ class CartController
             $config[$s['key']] = $s['value'];
         }
 
+        $shippingOptions = [];
+        $carriers = [
+            'mondial_relay' => 'Mondial Relay',
+            'shop2shop' => 'Shop2Shop (Relais Colis)',
+            'ups' => 'UPS Standard',
+            'pickup' => 'Retrait à domicile / en main propre',
+        ];
+        foreach ($carriers as $key => $label) {
+            if (($config["shipping_{$key}_enabled"] ?? '0') === '1') {
+                $shippingOptions[] = [
+                    'key' => $key,
+                    'label' => $label,
+                    'price' => floatval($config["shipping_{$key}_price"] ?? 0),
+                ];
+            }
+        }
+
         $content = 'checkout';
         $pageTitle = 'Commander';
-        render('checkout', compact('items', 'total', 'config', 'content', 'pageTitle'));
+        render('checkout', compact('items', 'total', 'shippingOptions', 'config', 'content', 'pageTitle'));
     }
 }

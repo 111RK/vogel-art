@@ -3,6 +3,9 @@
         <div class="checkmark">&#10003;</div>
         <h1>Merci pour votre commande !</h1>
         <p>Commande n° <strong><?= e($order['order_number']) ?></strong></p>
+        <?php if (!empty($order['shipping_method'])): ?>
+            <p>Livraison : <strong><?= e(PaymentController::carrierLabel($order['shipping_method'])) ?></strong></p>
+        <?php endif; ?>
 
         <?php if ($order['payment_method'] === 'bank_transfer'): ?>
             <div class="order-summary">
@@ -36,6 +39,12 @@
                     <strong><?= formatPrice($item['price']) ?></strong>
                 </div>
             <?php endforeach; ?>
+            <?php if (($order['shipping_cost'] ?? 0) > 0): ?>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); color: var(--text-light);">
+                    <span>Frais de livraison</span>
+                    <span><?= formatPrice($order['shipping_cost']) ?></span>
+                </div>
+            <?php endif; ?>
             <div style="display: flex; justify-content: space-between; padding: 16px 0; font-size: 1.1rem;">
                 <span>Total</span>
                 <strong style="color: var(--gold-dark);"><?= formatPrice($order['total']) ?></strong>

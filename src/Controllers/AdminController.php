@@ -264,6 +264,9 @@ class AdminController
             Database::query("UPDATE orders SET payment_status = ? WHERE id = ?", [$paymentStatus, (int)$id]);
         }
 
+        $tracking = trim($_POST['shipping_tracking'] ?? '');
+        Database::query("UPDATE orders SET shipping_tracking = ? WHERE id = ?", [$tracking ?: null, (int)$id]);
+
         flash('success', 'Statut mis à jour.');
         redirect('/admin/commandes/' . $id);
     }
@@ -292,6 +295,8 @@ class AdminController
             'bank_iban', 'bank_bic', 'bank_name',
             'contact_email', 'contact_phone',
             'about_text', 'artist_bio', 'timeline_data', 'shipping_info',
+            'packlink_api_key',
+            'shipping_mondial_relay_price', 'shipping_shop2shop_price', 'shipping_ups_price', 'shipping_pickup_price',
         ];
 
         foreach ($fields as $field) {
@@ -301,6 +306,20 @@ class AdminController
                     [$field, trim($_POST[$field]), trim($_POST[$field])]
                 );
             }
+        }
+
+        $checkboxes = [
+            'shipping_mondial_relay_enabled',
+            'shipping_shop2shop_enabled',
+            'shipping_ups_enabled',
+            'shipping_pickup_enabled',
+        ];
+        foreach ($checkboxes as $cb) {
+            $val = isset($_POST[$cb]) ? '1' : '0';
+            Database::query(
+                "INSERT INTO settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?",
+                [$cb, $val, $val]
+            );
         }
 
         flash('success', 'Paramètres sauvegardés.');
