@@ -2,7 +2,7 @@
 
 define('DEBUG', false);
 
-define('SITE_URL', 'http://198.186.131.142');
+define('SITE_URL', 'https://www.vogel-art.fr');
 define('SITE_NAME', 'Vogel Art');
 
 define('DB_HOST', 'localhost');
@@ -31,5 +31,5 @@ define('BANK_BIC', '');
 define('BANK_NAME', '');
 
 ini_set('session.cookie_httponly', 1);
-ini_set('session.cookie_secure', 0);
+ini_set('session.cookie_secure', 1);
 ini_set('session.use_strict_mode', 1);
