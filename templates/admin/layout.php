@@ -73,9 +73,13 @@
         document.getElementById('mob-nav').style.display='none';
     } else {
         document.getElementById('desktop-sidebar').style.display='none';
+        document.body.style.flexDirection='column';
         var m=document.getElementById('admin-main');
         m.style.marginLeft='0';
         m.style.padding='12px 14px 20px';
+        m.style.flex='1';
+        document.getElementById('mob-nav').style.position='sticky';
+        document.getElementById('mob-nav').style.bottom='0';
     }
     </script>
     <script src="/js/admin.js?v=<?= filemtime(PUBLIC_PATH . '/js/admin.js') ?>"></script>
