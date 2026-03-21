@@ -275,22 +275,9 @@ class PaymentController
 
         $_SESSION['cart'] = [];
 
-        $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [$orderId]);
-        $orderItems = Database::fetchAll(
-            "SELECT oi.*, p.image FROM order_items oi LEFT JOIN paintings p ON oi.painting_id = p.id WHERE oi.order_id = ?",
-            [$orderId]
-        );
-
-        try {
-            Mailer::orderConfirmationToCustomer($order, $orderItems);
-        } catch (\Throwable $e) {}
-
-        try {
-            Mailer::newOrderToMerchant($order, $orderItems);
-        } catch (\Throwable $e) {}
-
         try {
             if ($shippingMethod !== 'pickup') {
+                $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [$orderId]);
                 self::createPacklinkDraft($order);
             }
         } catch (\Throwable $e) {}
@@ -304,9 +291,30 @@ class PaymentController
                 break;
             case 'bank_transfer':
             case 'in_person':
+                self::sendOrderEmails($orderId);
                 redirect('/commande/confirmation/' . $orderId);
                 break;
         }
+    }
+
+    public static function sendOrderEmails(int $orderId): void
+    {
+        $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [$orderId]);
+        if (!$order) return;
+        if (!empty($order['notes']) && strpos($order['notes'], 'emails_sent') !== false) return;
+
+        $orderItems = Database::fetchAll(
+            "SELECT oi.*, p.image FROM order_items oi LEFT JOIN paintings p ON oi.painting_id = p.id WHERE oi.order_id = ?",
+            [$orderId]
+        );
+
+        try { Mailer::orderConfirmationToCustomer($order, $orderItems); } catch (\Throwable $e) {}
+        try { Mailer::newOrderToMerchant($order, $orderItems); } catch (\Throwable $e) {}
+
+        Database::query(
+            "UPDATE orders SET notes = CONCAT(COALESCE(notes, ''), '\n[emails_sent]') WHERE id = ?",
+            [$orderId]
+        );
     }
 
     public static function carrierLabel(string $key): string
@@ -566,6 +574,7 @@ class PaymentController
                     "UPDATE orders SET payment_status = 'paid', status = 'confirmed' WHERE id = ?",
                     [$orderId]
                 );
+                self::sendOrderEmails($orderId);
             }
         }
 
@@ -597,6 +606,7 @@ class PaymentController
             );
             $order['payment_status'] = 'paid';
             $order['status'] = 'confirmed';
+            self::sendOrderEmails((int)$id);
         }
 
         $bankInfo = [];
