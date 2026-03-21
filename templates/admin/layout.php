@@ -41,6 +41,11 @@
         <?php endif; ?>
 
         <?php require TEMPLATE_PATH . '/admin/' . $content . '.php'; ?>
+
+        <div id="mob-footer" style="display:none;margin-top:32px;padding-top:16px;border-top:1px solid #E8E4DF;text-align:center;">
+            <a href="/" target="_blank" style="color:#C9A96E;font-size:13px;text-decoration:none;margin-right:16px;">Voir le site</a>
+            <a href="/admin/logout" style="color:#999;font-size:13px;text-decoration:none;">Déconnexion</a>
+        </div>
     </main>
 
     <?php
@@ -80,6 +85,7 @@
         m.style.flex='1';
         document.getElementById('mob-nav').style.position='sticky';
         document.getElementById('mob-nav').style.bottom='0';
+        document.getElementById('mob-footer').style.display='block';
     }
     </script>
     <script src="/js/admin.js?v=<?= filemtime(PUBLIC_PATH . '/js/admin.js') ?>"></script>
