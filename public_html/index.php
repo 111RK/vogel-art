@@ -52,6 +52,8 @@ $router->post('/admin/tableaux/ajouter', [AdminController::class, 'addPainting']
 $router->get('/admin/tableaux/modifier/{id}', [AdminController::class, 'editPaintingForm']);
 $router->post('/admin/tableaux/modifier/{id}', [AdminController::class, 'editPainting']);
 $router->post('/admin/tableaux/supprimer/{id}', [AdminController::class, 'deletePainting']);
+$router->post('/admin/tableaux/{id}/photos', [AdminController::class, 'addPhotos']);
+$router->post('/admin/tableaux/{id}/photo-supprimer/{photoId}', [AdminController::class, 'deletePhoto']);
 $router->post('/admin/api/generate-description', [AdminController::class, 'generateDescription']);
 $router->post('/admin/api/improve-text', [AdminController::class, 'improveText']);
 $router->post('/admin/api/send-packlink', [AdminController::class, 'sendPacklink']);

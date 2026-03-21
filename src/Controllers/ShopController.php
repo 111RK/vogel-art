@@ -29,9 +29,11 @@ class ShopController
             [$painting['id']]
         );
 
+        $gallery = Database::fetchAll("SELECT * FROM painting_images WHERE painting_id = ? ORDER BY position", [$painting['id']]);
+
         $content = 'product';
         $pageTitle = $painting['title'];
-        render('product', compact('painting', 'related', 'content', 'pageTitle'));
+        render('product', compact('painting', 'gallery', 'related', 'content', 'pageTitle'));
     }
 
     public static function trackingForm(): void

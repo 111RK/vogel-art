@@ -58,3 +58,28 @@
 
     <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
 </form>
+
+<div class="admin-card" style="margin-top: 24px;">
+    <h3>Photos supplémentaires</h3>
+    <?php if (!empty($gallery)): ?>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+            <?php foreach ($gallery as $img): ?>
+                <div style="position: relative;">
+                    <img src="/uploads/thumbs/<?= e($img['image']) ?>" alt="" style="width: 120px; height: 120px; object-fit: cover; border-radius: 4px;">
+                    <form method="POST" action="/admin/tableaux/<?= $painting['id'] ?>/photo-supprimer/<?= $img['id'] ?>" style="position: absolute; top: 4px; right: 4px;">
+                        <?= csrf_field() ?>
+                        <button type="submit" style="background: rgba(196,69,54,0.9); color: #fff; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 14px; line-height: 1;" onclick="return confirm('Supprimer cette photo ?')">&times;</button>
+                    </form>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+    <form method="POST" action="/admin/tableaux/<?= $painting['id'] ?>/photos" enctype="multipart/form-data" style="display: flex; align-items: flex-end; gap: 12px;">
+        <?= csrf_field() ?>
+        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+            <label>Ajouter des photos</label>
+            <input type="file" name="photos[]" accept="image/jpeg,image/png,image/webp" multiple>
+        </div>
+        <button type="submit" class="btn btn-sm btn-primary">Uploader</button>
+    </form>
+</div>

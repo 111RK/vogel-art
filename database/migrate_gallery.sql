@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS `painting_images` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `painting_id` INT UNSIGNED NOT NULL,
+    `image` VARCHAR(255) NOT NULL,
+    `position` INT UNSIGNED DEFAULT 0,
+    FOREIGN KEY (`painting_id`) REFERENCES `paintings`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

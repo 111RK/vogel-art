@@ -120,9 +120,10 @@ class AdminController
         $painting = Database::fetch("SELECT * FROM paintings WHERE id = ?", [(int)$id]);
         if (!$painting) redirect('/admin/tableaux');
 
+        $gallery = Database::fetchAll("SELECT * FROM painting_images WHERE painting_id = ? ORDER BY position", [(int)$id]);
         $pageTitle = 'Modifier : ' . $painting['title'];
         $page = 'paintings';
-        renderAdmin('edit-painting', compact('painting', 'pageTitle', 'page'));
+        renderAdmin('edit-painting', compact('painting', 'gallery', 'pageTitle', 'page'));
     }
 
     public static function editPainting(string $id): void
@@ -185,6 +186,57 @@ class AdminController
         }
 
         redirect('/admin/tableaux');
+    }
+
+    public static function addPhotos(string $id): void
+    {
+        Auth::requireAuth();
+        if (!verify_csrf()) redirect('/admin/tableaux/modifier/' . $id);
+
+        $painting = Database::fetch("SELECT * FROM paintings WHERE id = ?", [(int)$id]);
+        if (!$painting) redirect('/admin/tableaux');
+
+        $maxPos = Database::fetch("SELECT COALESCE(MAX(position), 0) as p FROM painting_images WHERE painting_id = ?", [(int)$id]);
+        $pos = ($maxPos['p'] ?? 0) + 1;
+        $count = 0;
+
+        if (!empty($_FILES['photos']['name'][0])) {
+            foreach ($_FILES['photos']['name'] as $i => $name) {
+                $file = [
+                    'name' => $_FILES['photos']['name'][$i],
+                    'tmp_name' => $_FILES['photos']['tmp_name'][$i],
+                    'error' => $_FILES['photos']['error'][$i],
+                    'size' => $_FILES['photos']['size'][$i],
+                ];
+                $image = uploadImage($file);
+                if ($image) {
+                    Database::query(
+                        "INSERT INTO painting_images (painting_id, image, position) VALUES (?, ?, ?)",
+                        [(int)$id, $image, $pos++]
+                    );
+                    $count++;
+                }
+            }
+        }
+
+        flash('success', $count . ' photo(s) ajoutée(s).');
+        redirect('/admin/tableaux/modifier/' . $id);
+    }
+
+    public static function deletePhoto(string $id, string $photoId): void
+    {
+        Auth::requireAuth();
+
+        $photo = Database::fetch("SELECT * FROM painting_images WHERE id = ? AND painting_id = ?", [(int)$photoId, (int)$id]);
+        if ($photo) {
+            if (file_exists(UPLOAD_PATH . '/' . $photo['image'])) unlink(UPLOAD_PATH . '/' . $photo['image']);
+            $thumbPath = UPLOAD_PATH . '/thumbs/' . $photo['image'];
+            if (file_exists($thumbPath)) unlink($thumbPath);
+            Database::query("DELETE FROM painting_images WHERE id = ?", [(int)$photoId]);
+            flash('success', 'Photo supprimée.');
+        }
+
+        redirect('/admin/tableaux/modifier/' . $id);
     }
 
     public static function upscaleImage(): void
