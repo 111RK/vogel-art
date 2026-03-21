@@ -8,7 +8,9 @@ class ShopController
         );
         $content = 'shop';
         $pageTitle = 'Boutique';
-        render('shop', compact('paintings', 'content', 'pageTitle'));
+        $metaDescription = 'Découvrez nos tableaux originaux peints au couteau. Pièces uniques, art authentique fait main. Livraison en France.';
+        $ogTags = ['title' => 'Boutique - Vogel Art Gallery', 'description' => $metaDescription, 'url' => SITE_URL . '/boutique', 'type' => 'website'];
+        render('shop', compact('paintings', 'content', 'pageTitle', 'metaDescription', 'ogTags'));
     }
 
     public static function show(string $slug): void
@@ -33,7 +35,15 @@ class ShopController
 
         $content = 'product';
         $pageTitle = $painting['title'];
-        render('product', compact('painting', 'gallery', 'related', 'content', 'pageTitle'));
+        $metaDescription = $painting['description'] ? mb_substr(strip_tags($painting['description']), 0, 160) : 'Tableau original "' . $painting['title'] . '" peint au couteau. Pièce unique.';
+        $ogTags = [
+            'title' => $painting['title'] . ' - Vogel Art Gallery',
+            'description' => $metaDescription,
+            'url' => SITE_URL . '/tableau/' . $painting['slug'],
+            'type' => 'product',
+            'image' => SITE_URL . '/uploads/' . $painting['image'],
+        ];
+        render('product', compact('painting', 'gallery', 'related', 'content', 'pageTitle', 'metaDescription', 'ogTags'));
     }
 
     public static function trackingForm(): void

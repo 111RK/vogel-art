@@ -25,7 +25,9 @@ class HomeController
 
         $content = 'home';
         $pageTitle = 'Accueil';
-        render('home', compact('featured', 'recent', 'artistBio', 'timeline', 'content', 'pageTitle'));
+        $metaDescription = 'Vogel Art Gallery - Tableaux originaux peints à la main au couteau. Pièces uniques, art authentique. Livraison en France.';
+        $ogTags = ['title' => 'Vogel Art Gallery', 'description' => $metaDescription, 'url' => SITE_URL, 'type' => 'website', 'image' => SITE_URL . '/img/logo.svg'];
+        render('home', compact('featured', 'recent', 'artistBio', 'timeline', 'content', 'pageTitle', 'metaDescription', 'ogTags'));
     }
 
     public static function about(): void

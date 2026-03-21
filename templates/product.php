@@ -151,3 +151,21 @@
         <?php endif; ?>
     </div>
 </section>
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": <?= json_encode($painting['title']) ?>,
+    "description": <?= json_encode($painting['description'] ?: 'Tableau original peint au couteau') ?>,
+    "image": "<?= SITE_URL ?>/uploads/<?= $painting['image'] ?>",
+    "url": "<?= SITE_URL ?>/tableau/<?= $painting['slug'] ?>",
+    "brand": {"@type": "Brand", "name": "Vogel Art Gallery"},
+    "offers": {
+        "@type": "Offer",
+        "price": "<?= number_format($painting['price'], 2, '.', '') ?>",
+        "priceCurrency": "EUR",
+        "availability": "<?= $painting['status'] === 'available' ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut' ?>",
+        "url": "<?= SITE_URL ?>/tableau/<?= $painting['slug'] ?>"
+    }
+}
+</script>

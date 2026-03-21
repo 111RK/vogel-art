@@ -24,7 +24,7 @@
 <body>
     <header>
         <div class="container">
-            <a href="/" class="logo">Vogel <span>Art</span> Gallery</a>
+            <a href="/" class="logo"><img src="/img/logo.svg" alt="Vogel Art Gallery" style="height:44px;"></a>
             <button class="hamburger" onclick="document.querySelector('nav').classList.toggle('active')">
                 <span></span><span></span><span></span>
             </button>
@@ -91,6 +91,9 @@
         </div>
     </footer>
 
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"Organization","name":"Vogel Art Gallery","url":"<?= SITE_URL ?>","logo":"<?= SITE_URL ?>/img/logo.svg","description":"Tableaux originaux peints à la main au couteau. Pièces uniques, art authentique.","sameAs":[]}
+    </script>
     <script src="/js/app.js?v=<?= filemtime(PUBLIC_PATH . '/js/app.js') ?>"></script>
 </body>
 </html>
