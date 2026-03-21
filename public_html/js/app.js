@@ -221,4 +221,41 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    var checkoutFields = ['firstname', 'lastname', 'email', 'phone', 'address', 'city', 'postal'];
+    var storageKey = 'vogel_checkout';
+
+    function saveCheckoutData() {
+        var data = {};
+        checkoutFields.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) data[id] = el.value;
+        });
+        try { localStorage.setItem(storageKey, JSON.stringify(data)); } catch(e) {}
+    }
+
+    function restoreCheckoutData() {
+        try {
+            var saved = JSON.parse(localStorage.getItem(storageKey));
+            if (!saved) return;
+            checkoutFields.forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el && saved[id] && !el.value) {
+                    el.value = saved[id];
+                }
+            });
+            unlockShipping();
+        } catch(e) {}
+    }
+
+    if (document.getElementById('firstname')) {
+        restoreCheckoutData();
+        checkoutFields.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', saveCheckoutData);
+                el.addEventListener('change', saveCheckoutData);
+            }
+        });
+    }
 });
