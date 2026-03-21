@@ -24,7 +24,7 @@
 <body>
     <header>
         <div class="container">
-            <a href="/" class="logo"><img src="/img/logo.svg" alt="Vogel Art Gallery" style="height:44px;"></a>
+            <a href="/" class="logo"><img src="/img/logo.svg" alt="Vogel Art Gallery" style="height:80px;"></a>
             <button class="hamburger" onclick="document.querySelector('nav').classList.toggle('active')">
                 <span></span><span></span><span></span>
             </button>
