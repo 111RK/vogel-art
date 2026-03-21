@@ -9,13 +9,77 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     var paymentOptions = document.querySelectorAll('.payment-option');
+    var paypalContainer = document.getElementById('paypal-button-container');
+    var submitBtn = document.getElementById('submit-btn');
+    var paypalRendered = false;
+
+    function togglePaypalButtons() {
+        var checked = document.querySelector('input[name="payment_method"]:checked');
+        if (!checked || !paypalContainer) return;
+        if (checked.value === 'paypal') {
+            paypalContainer.style.display = 'block';
+            if (submitBtn) submitBtn.style.display = 'none';
+            if (!paypalRendered && typeof paypal_sdk !== 'undefined') {
+                paypalRendered = true;
+                paypal_sdk.Buttons({
+                    style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' },
+                    createOrder: function (data, actions) {
+                        var form = document.querySelector('.checkout-form');
+                        var formData = new FormData(form);
+                        formData.set('payment_method', 'paypal');
+                        return fetch('/api/paypal/create', { method: 'POST', body: formData })
+                            .then(function (res) { return res.json(); })
+                            .then(function (data) {
+                                if (data.error) { alert(data.error); throw new Error(data.error); }
+                                return data.paypal_order_id;
+                            });
+                    },
+                    onApprove: function (data, actions) {
+                        return fetch('/api/paypal/capture', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ paypal_order_id: data.orderID })
+                        })
+                        .then(function (res) { return res.json(); })
+                        .then(function (result) {
+                            if (result.redirect) {
+                                window.location.href = result.redirect;
+                            } else if (result.error) {
+                                alert(result.error);
+                            }
+                        });
+                    },
+                    onCancel: function (data) {
+                        fetch('/api/paypal/cancel', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ paypal_order_id: data.orderID })
+                        }).then(function (res) { return res.json(); })
+                        .then(function (result) {
+                            if (result.redirect) window.location.href = result.redirect;
+                        });
+                    },
+                    onError: function (err) {
+                        alert('Erreur PayPal. Veuillez réessayer ou choisir un autre mode de paiement.');
+                    }
+                }).render('#paypal-button-container');
+            }
+        } else {
+            paypalContainer.style.display = 'none';
+            if (submitBtn) submitBtn.style.display = 'block';
+        }
+    }
+
     paymentOptions.forEach(function (option) {
         option.addEventListener('click', function () {
             paymentOptions.forEach(function (o) { o.classList.remove('active'); });
             option.classList.add('active');
             option.querySelector('input[type="radio"]').checked = true;
+            togglePaypalButtons();
         });
     });
+
+    togglePaypalButtons();
 
     var shippingSection = document.getElementById('shipping-section');
     var shippingOptions = document.querySelectorAll('.shipping-option');

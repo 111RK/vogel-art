@@ -440,15 +440,14 @@ class PaymentController
 
     private static function handlePaypal(int $orderId, float $total): void
     {
+        redirect('/commande/confirmation/' . $orderId);
+    }
+
+    private static function getPaypalToken(): ?string
+    {
         $settings = Database::fetchAll("SELECT `key`, `value` FROM settings WHERE `key` LIKE 'paypal_%'");
         $config = [];
         foreach ($settings as $s) $config[$s['key']] = $s['value'];
-
-        if (empty($config['paypal_client_id']) || empty($config['paypal_secret'])) {
-            flash('error', 'PayPal n\'est pas encore configuré.');
-            redirect('/commande/confirmation/' . $orderId);
-            return;
-        }
 
         $apiBase = ($config['paypal_mode'] ?? 'sandbox') === 'live'
             ? 'https://api-m.paypal.com'
@@ -464,45 +463,66 @@ class PaymentController
         $auth = json_decode(curl_exec($ch), true);
         curl_close($ch);
 
-        if (empty($auth['access_token'])) {
-            flash('error', 'Erreur d\'authentification PayPal.');
-            redirect('/commande/confirmation/' . $orderId);
+        return $auth['access_token'] ?? null;
+    }
+
+    private static function getPaypalApiBase(): string
+    {
+        $mode = Database::fetch("SELECT value FROM settings WHERE `key` = 'paypal_mode'");
+        return ($mode['value'] ?? 'sandbox') === 'live'
+            ? 'https://api-m.paypal.com'
+            : 'https://api-m.sandbox.paypal.com';
+    }
+
+    public static function paypalCreateOrder(): void
+    {
+        header('Content-Type: application/json');
+
+        $cart = getCart();
+        if (empty($cart)) {
+            echo json_encode(['error' => 'Panier vide.']);
             return;
         }
 
-        $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [$orderId]);
+        $items = [];
+        $subtotal = 0;
+        foreach ($cart as $paintingId) {
+            $painting = Database::fetch("SELECT * FROM paintings WHERE id = ? AND status = 'available'", [$paintingId]);
+            if ($painting) { $items[] = $painting; $subtotal += $painting['price']; }
+        }
+
+        $shippingMethod = $_POST['shipping_method'] ?? 'pickup';
+        $settings = Database::fetchAll("SELECT `key`, `value` FROM settings");
+        $config = [];
+        foreach ($settings as $s) $config[$s['key']] = $s['value'];
+        $shippingCost = floatval($config["shipping_{$shippingMethod}_price"] ?? 0);
+        $total = $subtotal + $shippingCost;
+
+        $token = self::getPaypalToken();
+        if (!$token) {
+            echo json_encode(['error' => 'Erreur PayPal.']);
+            return;
+        }
 
         $payload = [
             'intent' => 'CAPTURE',
-            'purchase_units' => [
-                [
-                    'reference_id' => $order['order_number'],
-                    'amount' => [
-                        'currency_code' => 'EUR',
-                        'value' => number_format($total, 2, '.', ''),
-                    ],
-                    'description' => 'Commande Vogel Art ' . $order['order_number'],
+            'purchase_units' => [[
+                'amount' => [
+                    'currency_code' => 'EUR',
+                    'value' => number_format($total, 2, '.', ''),
                 ],
-            ],
-            'payment_source' => [
-                'paypal' => [
-                    'experience_context' => [
-                        'brand_name' => 'Vogel Art Gallery',
-                        'return_url' => SITE_URL . '/paypal/capture?order_id=' . $orderId,
-                        'cancel_url' => SITE_URL . '/commande/confirmation/' . $orderId . '?payment=cancel',
-                        'user_action' => 'PAY_NOW',
-                    ],
-                ],
-            ],
+                'description' => 'Vogel Art Gallery',
+            ]],
         ];
 
+        $apiBase = self::getPaypalApiBase();
         $ch = curl_init("$apiBase/v2/checkout/orders");
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
             CURLOPT_HTTPHEADER => [
                 'Content-Type: application/json',
-                'Authorization: Bearer ' . $auth['access_token'],
+                'Authorization: Bearer ' . $token,
             ],
             CURLOPT_POSTFIELDS => json_encode($payload),
         ]);
@@ -510,90 +530,116 @@ class PaymentController
         curl_close($ch);
 
         if (!empty($response['id'])) {
-            Database::query(
-                "UPDATE orders SET payment_id = ? WHERE id = ?",
-                [$response['id'], $orderId]
-            );
-
-            foreach ($response['links'] ?? [] as $link) {
-                if ($link['rel'] === 'payer-action') {
-                    redirect($link['href']);
-                    return;
-                }
-            }
+            $_SESSION['paypal_order_data'] = $_POST;
+            echo json_encode(['paypal_order_id' => $response['id']]);
+        } else {
+            echo json_encode(['error' => 'Impossible de créer la commande PayPal.']);
         }
-
-        redirect('/commande/confirmation/' . $orderId);
     }
 
-    public static function paypalCapture(): void
+    public static function paypalCaptureOrder(): void
     {
-        $orderId = (int)($_GET['order_id'] ?? 0);
-        $paypalToken = $_GET['token'] ?? '';
+        header('Content-Type: application/json');
 
-        $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [$orderId]);
-        if (!$order) {
-            redirect('/');
+        $input = json_decode(file_get_contents('php://input'), true);
+        $paypalOrderId = $input['paypal_order_id'] ?? '';
+
+        $token = self::getPaypalToken();
+        if (!$token || !$paypalOrderId) {
+            echo json_encode(['error' => 'Erreur PayPal.']);
             return;
         }
 
-        $settings = Database::fetchAll("SELECT `key`, `value` FROM settings WHERE `key` LIKE 'paypal_%'");
-        $config = [];
-        foreach ($settings as $s) $config[$s['key']] = $s['value'];
-
-        $apiBase = ($config['paypal_mode'] ?? 'sandbox') === 'live'
-            ? 'https://api-m.paypal.com'
-            : 'https://api-m.sandbox.paypal.com';
-
-        $ch = curl_init("$apiBase/v1/oauth2/token");
+        $apiBase = self::getPaypalApiBase();
+        $ch = curl_init("$apiBase/v2/checkout/orders/$paypalOrderId/capture");
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
-            CURLOPT_USERPWD => $config['paypal_client_id'] . ':' . $config['paypal_secret'],
-            CURLOPT_POSTFIELDS => 'grant_type=client_credentials',
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $token,
+            ],
+            CURLOPT_POSTFIELDS => '{}',
         ]);
-        $auth = json_decode(curl_exec($ch), true);
+        $capture = json_decode(curl_exec($ch), true);
         curl_close($ch);
 
-        if (!empty($auth['access_token']) && $paypalToken) {
-            $ch = curl_init("$apiBase/v2/checkout/orders/$paypalToken/capture");
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_POST => true,
-                CURLOPT_HTTPHEADER => [
-                    'Content-Type: application/json',
-                    'Authorization: Bearer ' . $auth['access_token'],
-                ],
-                CURLOPT_POSTFIELDS => '{}',
-            ]);
-            $capture = json_decode(curl_exec($ch), true);
-            curl_close($ch);
-
-            if (($capture['status'] ?? '') === 'COMPLETED') {
-                Database::query(
-                    "UPDATE orders SET payment_status = 'paid', status = 'confirmed' WHERE id = ?",
-                    [$orderId]
-                );
-                self::sendOrderEmails($orderId);
-                redirect('/commande/confirmation/' . $orderId . '?payment=success');
-                return;
-            } else {
-                Database::query(
-                    "UPDATE orders SET payment_status = 'failed', status = 'cancelled' WHERE id = ?",
-                    [$orderId]
-                );
-                self::restoreStock($orderId);
-                redirect('/commande/confirmation/' . $orderId . '?payment=failed');
-                return;
-            }
+        if (($capture['status'] ?? '') !== 'COMPLETED') {
+            echo json_encode(['error' => 'Le paiement PayPal a échoué.']);
+            return;
         }
 
+        $postData = $_SESSION['paypal_order_data'] ?? [];
+        unset($_SESSION['paypal_order_data']);
+
+        $cart = getCart();
+        $items = [];
+        $subtotal = 0;
+        foreach ($cart as $paintingId) {
+            $painting = Database::fetch("SELECT * FROM paintings WHERE id = ? AND status = 'available'", [$paintingId]);
+            if ($painting) { $items[] = $painting; $subtotal += $painting['price']; }
+        }
+
+        $shippingMethod = $postData['shipping_method'] ?? 'pickup';
+        $settings = Database::fetchAll("SELECT `key`, `value` FROM settings");
+        $config = [];
+        foreach ($settings as $s) $config[$s['key']] = $s['value'];
+        $shippingCost = floatval($config["shipping_{$shippingMethod}_price"] ?? 0);
+        $total = $subtotal + $shippingCost;
+
+        $relayName = trim($postData['relay_point_name'] ?? '');
+        $relayAddress = trim($postData['relay_point_address'] ?? '');
+        $relayId = trim($postData['relay_point_id'] ?? '');
+        $notes = $relayName ? 'Point relais : ' . $relayName . ' - ' . $relayAddress . ' (ID: ' . $relayId . ')' : '';
+
+        $orderNumber = 'VA-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -5));
+
         Database::query(
-            "UPDATE orders SET payment_status = 'failed', status = 'cancelled' WHERE id = ?",
-            [$orderId]
+            "INSERT INTO orders (order_number, customer_firstname, customer_lastname, customer_email, customer_phone, shipping_address, shipping_city, shipping_postal, total, payment_method, payment_status, status, shipping_method, shipping_cost, payment_id, notes)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'paypal', 'paid', 'confirmed', ?, ?, ?, ?)",
+            [
+                $orderNumber,
+                trim($postData['firstname'] ?? ''),
+                trim($postData['lastname'] ?? ''),
+                trim($postData['email'] ?? ''),
+                trim($postData['phone'] ?? ''),
+                trim($postData['address'] ?? ''),
+                trim($postData['city'] ?? ''),
+                trim($postData['postal'] ?? ''),
+                $total,
+                $shippingMethod,
+                $shippingCost,
+                $paypalOrderId,
+                $notes ?: null,
+            ]
         );
-        self::restoreStock($orderId);
-        redirect('/commande/confirmation/' . $orderId . '?payment=failed');
+
+        $orderId = Database::lastInsertId();
+
+        foreach ($items as $painting) {
+            Database::query("INSERT INTO order_items (order_id, painting_id, title, price) VALUES (?, ?, ?, ?)",
+                [$orderId, $painting['id'], $painting['title'], $painting['price']]);
+            Database::query("UPDATE paintings SET status = 'sold' WHERE id = ?", [$painting['id']]);
+        }
+
+        $_SESSION['cart'] = [];
+
+        try { self::sendOrderEmails((int)$orderId); } catch (\Throwable $e) {}
+        try {
+            if ($shippingMethod !== 'pickup') {
+                $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [(int)$orderId]);
+                self::createPacklinkDraft($order);
+            }
+        } catch (\Throwable $e) {}
+
+        echo json_encode(['redirect' => SITE_URL . '/commande/confirmation/' . $orderId . '?payment=success']);
+    }
+
+    public static function paypalCancelOrder(): void
+    {
+        header('Content-Type: application/json');
+        unset($_SESSION['paypal_order_data']);
+        echo json_encode(['redirect' => SITE_URL . '/boutique']);
     }
 
     private static function restoreStock(int $orderId): void

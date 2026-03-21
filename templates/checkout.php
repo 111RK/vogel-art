@@ -128,7 +128,13 @@
                     </label>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Confirmer la commande</button>
+                <div id="paypal-button-container" style="display:none; margin-bottom: 16px;"></div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;" id="submit-btn">Confirmer la commande</button>
+
+                <?php if (!empty($config['paypal_client_id'])): ?>
+                <script src="https://www.paypal.com/sdk/js?client-id=<?= e($config['paypal_client_id']) ?>&currency=EUR&intent=capture" data-namespace="paypal_sdk"></script>
+                <?php endif; ?>
             </div>
         </form>
     </div>
