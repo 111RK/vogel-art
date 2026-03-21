@@ -97,10 +97,21 @@
                         <span id="shipping-cost-display">-</span>
                     </div>
 
+                    <div id="promo-line" style="display: none; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); color: var(--success);">
+                        <span>Code promo <strong id="promo-code-display"></strong></span>
+                        <span id="promo-discount-display"></span>
+                    </div>
+
                     <div style="display: flex; justify-content: space-between; padding: 16px 0; font-size: 1.2rem;">
                         <span>Total</span>
                         <strong style="color: var(--gold-dark);" id="order-total-display"><?= formatPrice($total) ?></strong>
                     </div>
+
+                    <div style="display: flex; gap: 8px; margin-top: 4px;">
+                        <input type="text" id="promo-input" name="promo_code" placeholder="Code promo" style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:0.9rem;text-transform:uppercase;">
+                        <button type="button" class="btn btn-sm btn-outline" onclick="applyPromo()">Appliquer</button>
+                    </div>
+                    <div id="promo-message" style="margin-top: 6px; font-size: 0.85rem;"></div>
                 </div>
 
                 <h3 style="margin: 20px 0;">Mode de paiement</h3>

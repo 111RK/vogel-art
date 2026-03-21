@@ -517,6 +517,63 @@ class AdminController
         redirect('/admin/utilisateurs');
     }
 
+    public static function promoList(): void
+    {
+        Auth::requireAuth();
+        $promos = Database::fetchAll("SELECT * FROM promo_codes ORDER BY created_at DESC");
+        $pageTitle = 'Codes promo';
+        $page = 'promos';
+        renderAdmin('promos', compact('promos', 'pageTitle', 'page'));
+    }
+
+    public static function addPromo(): void
+    {
+        Auth::requireAuth();
+        if (!verify_csrf()) redirect('/admin/promos');
+
+        $code = strtoupper(trim($_POST['code'] ?? ''));
+        $type = $_POST['type'] === 'fixed' ? 'fixed' : 'percent';
+        $value = floatval($_POST['value'] ?? 0);
+        $minOrder = floatval($_POST['min_order'] ?? 0);
+        $maxUses = intval($_POST['max_uses'] ?? 0) ?: null;
+        $expiresAt = !empty($_POST['expires_at']) ? $_POST['expires_at'] : null;
+
+        if (empty($code) || $value <= 0) {
+            flash('error', 'Code et valeur obligatoires.');
+            redirect('/admin/promos');
+        }
+
+        $existing = Database::fetch("SELECT id FROM promo_codes WHERE code = ?", [$code]);
+        if ($existing) {
+            flash('error', 'Ce code existe déjà.');
+            redirect('/admin/promos');
+        }
+
+        Database::query(
+            "INSERT INTO promo_codes (code, type, value, min_order, max_uses, expires_at) VALUES (?, ?, ?, ?, ?, ?)",
+            [$code, $type, $value, $minOrder, $maxUses, $expiresAt]
+        );
+
+        flash('success', 'Code promo créé : ' . $code);
+        redirect('/admin/promos');
+    }
+
+    public static function deletePromo(string $id): void
+    {
+        Auth::requireAuth();
+        Database::query("DELETE FROM promo_codes WHERE id = ?", [(int)$id]);
+        flash('success', 'Code supprimé.');
+        redirect('/admin/promos');
+    }
+
+    public static function togglePromo(string $id): void
+    {
+        Auth::requireAuth();
+        Database::query("UPDATE promo_codes SET active = NOT active WHERE id = ?", [(int)$id]);
+        flash('success', 'Statut mis à jour.');
+        redirect('/admin/promos');
+    }
+
     public static function blogList(): void
     {
         Auth::requireAuth();

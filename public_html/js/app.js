@@ -94,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var currentPostal = '';
 
     var subtotal = summaryBox ? (parseFloat(summaryBox.dataset.subtotal) || 0) : 0;
+    var currentDiscount = 0;
 
     function unlockShipping() {
         if (!shippingSection) return;
@@ -186,7 +187,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!checked) return;
         var price = parseFloat(checked.dataset.price) || 0;
         if (shippingDisplay) shippingDisplay.textContent = price > 0 ? formatEur(price) : 'Gratuit';
-        if (totalDisplay) totalDisplay.textContent = formatEur(subtotal + price);
+        var finalTotal = Math.max(0, subtotal + price - currentDiscount);
+        if (totalDisplay) totalDisplay.textContent = formatEur(finalTotal);
     }
 
     function handleShippingChange(clickedOption) {
@@ -345,3 +347,37 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+function applyPromo() {
+    var input = document.getElementById('promo-input');
+    var msg = document.getElementById('promo-message');
+    var code = input.value.trim();
+    if (!code) { msg.innerHTML = '<span style="color:var(--error)">Entrez un code promo.</span>'; return; }
+
+    var subtotal = parseFloat(document.querySelector('.order-summary').dataset.subtotal) || 0;
+    var formData = new FormData();
+    formData.append('code', code);
+    formData.append('subtotal', subtotal);
+
+    fetch('/api/promo/check', { method: 'POST', body: formData })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.error) {
+                msg.innerHTML = '<span style="color:var(--error)">' + data.error + '</span>';
+                return;
+            }
+            window.currentDiscount = data.discount;
+            document.getElementById('promo-line').style.display = 'flex';
+            document.getElementById('promo-code-display').textContent = data.code;
+            document.getElementById('promo-discount-display').textContent = '-' + data.discount.toFixed(2).replace('.', ',') + ' \u20ac';
+            msg.innerHTML = '<span style="color:var(--success)">Code appliqué : ' + data.label + '</span>';
+            input.readOnly = true;
+            input.style.background = '#E8F5E9';
+
+            var checked = document.querySelector('input[name="shipping_method"]:checked');
+            var shipping = checked ? (parseFloat(checked.dataset.price) || 0) : 0;
+            var total = Math.max(0, subtotal + shipping - data.discount);
+            document.getElementById('order-total-display').textContent = total.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' \u20ac';
+        })
+        .catch(function() { msg.innerHTML = '<span style="color:var(--error)">Erreur, réessayez.</span>'; });
+}

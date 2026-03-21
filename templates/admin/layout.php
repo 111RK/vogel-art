@@ -21,6 +21,7 @@
             <a href="/admin/commandes" class="<?= ($page ?? '') === 'orders' ? 'active' : '' ?>">Commandes</a>
             <a href="/admin/blog" class="<?= ($page ?? '') === 'blog' ? 'active' : '' ?>">Blog</a>
             <a href="/admin/faq" class="<?= ($page ?? '') === 'faq' ? 'active' : '' ?>">FAQ</a>
+            <a href="/admin/promos" class="<?= ($page ?? '') === 'promos' ? 'active' : '' ?>">Codes promo</a>
             <a href="/admin/parametres" class="<?= ($page ?? '') === 'settings' ? 'active' : '' ?>">Paramètres</a>
             <a href="/admin/utilisateurs" class="<?= ($page ?? '') === 'users' ? 'active' : '' ?>">Utilisateurs</a>
         </nav>

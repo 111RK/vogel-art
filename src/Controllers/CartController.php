@@ -121,4 +121,57 @@ class CartController
         $pageTitle = 'Commander';
         render('checkout', compact('items', 'total', 'shippingOptions', 'config', 'content', 'pageTitle'));
     }
+
+    public static function checkPromo(): void
+    {
+        header('Content-Type: application/json');
+
+        $code = strtoupper(trim($_POST['code'] ?? ''));
+        $subtotal = floatval($_POST['subtotal'] ?? 0);
+
+        if (empty($code)) {
+            echo json_encode(['error' => 'Entrez un code promo.']);
+            return;
+        }
+
+        $promo = Database::fetch("SELECT * FROM promo_codes WHERE code = ? AND active = 1", [$code]);
+
+        if (!$promo) {
+            echo json_encode(['error' => 'Code promo invalide.']);
+            return;
+        }
+
+        if ($promo['expires_at'] && strtotime($promo['expires_at']) < time()) {
+            echo json_encode(['error' => 'Ce code promo a expiré.']);
+            return;
+        }
+
+        if ($promo['max_uses'] && $promo['used_count'] >= $promo['max_uses']) {
+            echo json_encode(['error' => 'Ce code promo n\'est plus disponible.']);
+            return;
+        }
+
+        if ($subtotal < $promo['min_order']) {
+            echo json_encode(['error' => 'Commande minimum de ' . number_format($promo['min_order'], 2, ',', ' ') . ' € pour ce code.']);
+            return;
+        }
+
+        if ($promo['type'] === 'percent') {
+            $discount = round($subtotal * $promo['value'] / 100, 2);
+            $label = '-' . $promo['value'] . '%';
+        } else {
+            $discount = min($promo['value'], $subtotal);
+            $label = '-' . number_format($promo['value'], 2, ',', ' ') . ' €';
+        }
+
+        $_SESSION['promo_code'] = $code;
+        $_SESSION['promo_discount'] = $discount;
+
+        echo json_encode([
+            'success' => true,
+            'code' => $code,
+            'label' => $label,
+            'discount' => $discount,
+        ]);
+    }
 }

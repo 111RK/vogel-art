@@ -227,7 +227,26 @@ class PaymentController
         }
 
         $shippingCost = floatval($config["shipping_{$shippingMethod}_price"] ?? 0);
-        $total = $subtotal + $shippingCost;
+
+        $promoCode = $_SESSION['promo_code'] ?? trim($_POST['promo_code'] ?? '');
+        $discount = 0;
+        if ($promoCode) {
+            $promo = Database::fetch("SELECT * FROM promo_codes WHERE code = ? AND active = 1", [strtoupper($promoCode)]);
+            if ($promo) {
+                if ($promo['type'] === 'percent') {
+                    $discount = round($subtotal * $promo['value'] / 100, 2);
+                } else {
+                    $discount = min($promo['value'], $subtotal);
+                }
+                Database::query("UPDATE promo_codes SET used_count = used_count + 1 WHERE id = ?", [$promo['id']]);
+                $promoCode = $promo['code'];
+            } else {
+                $promoCode = null;
+            }
+        }
+        unset($_SESSION['promo_code'], $_SESSION['promo_discount']);
+
+        $total = max(0, $subtotal + $shippingCost - $discount);
 
         $relayPointName = trim($_POST['relay_point_name'] ?? '');
         $relayPointAddress = trim($_POST['relay_point_address'] ?? '');
@@ -241,8 +260,8 @@ class PaymentController
         $orderNumber = 'VA-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -5));
 
         Database::query(
-            "INSERT INTO orders (order_number, customer_firstname, customer_lastname, customer_email, customer_phone, shipping_address, shipping_city, shipping_postal, total, payment_method, shipping_method, shipping_cost, notes)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO orders (order_number, customer_firstname, customer_lastname, customer_email, customer_phone, shipping_address, shipping_city, shipping_postal, total, payment_method, shipping_method, shipping_cost, promo_code, discount, notes)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
                 $orderNumber,
                 trim($_POST['firstname']),
@@ -256,6 +275,8 @@ class PaymentController
                 $paymentMethod,
                 $shippingMethod,
                 $shippingCost,
+                $promoCode ?: null,
+                $discount,
                 $notes ?: null,
             ]
         );
