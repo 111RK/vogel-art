@@ -187,6 +187,44 @@ class AdminController
         redirect('/admin/tableaux');
     }
 
+    public static function upscaleImage(): void
+    {
+        Auth::requireAuth();
+        header('Content-Type: application/json');
+
+        $id = (int)($_POST['painting_id'] ?? 0);
+        $painting = Database::fetch("SELECT * FROM paintings WHERE id = ?", [$id]);
+
+        if (!$painting) {
+            echo json_encode(['error' => 'Tableau introuvable.']);
+            return;
+        }
+
+        $filePath = UPLOAD_PATH . '/' . $painting['image'];
+        if (!file_exists($filePath)) {
+            echo json_encode(['error' => 'Fichier image introuvable.']);
+            return;
+        }
+
+        $upscaler = new ILoveImgUpscaler();
+        $result = $upscaler->upscale($filePath, 2);
+
+        if ($result) {
+            $ext = strtolower(pathinfo($painting['image'], PATHINFO_EXTENSION));
+            $imageInfo = getimagesize($filePath);
+            if ($imageInfo && $imageInfo[0] > 1920) {
+                $resized = resizeImage($filePath, $ext, 1920);
+                if ($resized) {
+                    file_put_contents($filePath, $resized);
+                }
+            }
+            createThumbnail($filePath, $ext);
+            echo json_encode(['success' => true, 'message' => 'Image améliorée avec succès.']);
+        } else {
+            echo json_encode(['error' => 'Erreur lors du traitement. Vérifiez les clés API iLoveIMG.']);
+        }
+    }
+
     public static function generateDescription(): void
     {
         Auth::requireAuth();
