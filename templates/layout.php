@@ -78,6 +78,8 @@
                 <ul>
                     <li><a href="/livraison">Livraison</a></li>
                     <li><a href="/cgv">CGV</a></li>
+                    <li><a href="/mentions-legales">Mentions légales</a></li>
+                    <li><a href="/confidentialite">Confidentialité</a></li>
                     <li><a href="/faq">FAQ</a></li>
                     <li><a href="/suivi">Suivi de commande</a></li>
                     <li><a href="/contact">Nous contacter</a></li>

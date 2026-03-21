@@ -72,6 +72,30 @@ class HomeController
         render('cgv', compact('content', 'pageTitle'));
     }
 
+    public static function mentions(): void
+    {
+        $contactInfo = [];
+        foreach (['gallery_name', 'owner_firstname', 'owner_lastname', 'contact_address', 'contact_city', 'contact_postal', 'contact_phone', 'contact_email'] as $k) {
+            $r = Database::fetch("SELECT value FROM settings WHERE `key` = ?", [$k]);
+            $contactInfo[$k] = $r['value'] ?? '';
+        }
+        $content = 'mentions';
+        $pageTitle = 'Mentions légales';
+        render('mentions', compact('contactInfo', 'content', 'pageTitle'));
+    }
+
+    public static function confidentialite(): void
+    {
+        $contactInfo = [];
+        foreach (['gallery_name', 'owner_firstname', 'owner_lastname', 'contact_email'] as $k) {
+            $r = Database::fetch("SELECT value FROM settings WHERE `key` = ?", [$k]);
+            $contactInfo[$k] = $r['value'] ?? '';
+        }
+        $content = 'confidentialite';
+        $pageTitle = 'Politique de confidentialité';
+        render('confidentialite', compact('contactInfo', 'content', 'pageTitle'));
+    }
+
     public static function faq(): void
     {
         $faqs = Database::fetchAll("SELECT * FROM faq WHERE active = 1 ORDER BY position ASC");
