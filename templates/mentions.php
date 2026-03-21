@@ -22,8 +22,9 @@
 
             <h3 style="margin-top: 24px;">Hébergeur</h3>
             <p>
-                Enhance / HostingCP<br>
-                Serveur situé en France
+                WAI31<br>
+                31210 Gourdan-Polignan<br>
+                <a href="https://www.wai31.fr" target="_blank" style="color: var(--gold);">www.wai31.fr</a>
             </p>
 
             <h3 style="margin-top: 24px;">Propriété intellectuelle</h3>
