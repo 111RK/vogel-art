@@ -25,6 +25,7 @@ $router->get('/contact', [HomeController::class, 'contact']);
 $router->post('/contact', [HomeController::class, 'contactSubmit']);
 $router->get('/cgv', [HomeController::class, 'cgv']);
 $router->get('/faq', [HomeController::class, 'faq']);
+$router->get('/livraison', [HomeController::class, 'shipping']);
 $router->get('/suivi', [ShopController::class, 'trackingForm']);
 $router->post('/suivi', [ShopController::class, 'trackingResult']);
 

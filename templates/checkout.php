@@ -49,6 +49,9 @@
                 <?php if (!empty($shippingOptions)): ?>
                 <div id="shipping-section" class="shipping-section-locked">
                     <h3 style="margin: 24px 0 16px;">Mode de livraison *</h3>
+                    <?php if (!empty($config['shipping_info'])): ?>
+                        <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 12px; line-height: 1.6;"><?= nl2br(e($config['shipping_info'])) ?> <a href="/livraison" style="color: var(--gold);">En savoir plus</a></p>
+                    <?php endif; ?>
                     <p class="shipping-locked-msg" id="shipping-locked-msg">Renseignez votre adresse pour voir les modes de livraison disponibles.</p>
                     <div class="shipping-methods" id="shipping-methods-list">
                         <?php foreach ($shippingOptions as $i => $option): ?>

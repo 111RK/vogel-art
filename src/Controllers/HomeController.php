@@ -84,4 +84,33 @@ class HomeController
         $pageTitle = 'Questions fréquentes';
         render('faq', compact('faqs', 'content', 'pageTitle'));
     }
+
+    public static function shipping(): void
+    {
+        $shippingInfo = Database::fetch("SELECT value FROM settings WHERE `key` = 'shipping_info'");
+        $settings = Database::fetchAll("SELECT `key`, `value` FROM settings WHERE `key` LIKE 'shipping_%'");
+        $config = [];
+        foreach ($settings as $s) $config[$s['key']] = $s['value'];
+
+        $carriers = [];
+        $carrierList = [
+            'pickup' => ['label' => 'Retrait en main propre', 'icon' => 'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z'],
+            'mondial_relay' => ['label' => 'Mondial Relay - Point Relais', 'icon' => 'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z'],
+            'shop2shop' => ['label' => 'Chronopost - Shop2Shop', 'icon' => 'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z'],
+            'ups' => ['label' => 'UPS - Access Point', 'icon' => 'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z'],
+            'mondial_relay_domicile' => ['label' => 'Mondial Relay - Domicile', 'icon' => 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8'],
+        ];
+        foreach ($carrierList as $key => $info) {
+            if (($config["shipping_{$key}_enabled"] ?? '0') === '1') {
+                $carriers[] = [
+                    'label' => $info['label'],
+                    'price' => floatval($config["shipping_{$key}_price"] ?? 0),
+                ];
+            }
+        }
+
+        $content = 'shipping';
+        $pageTitle = 'Livraison';
+        render('shipping', compact('shippingInfo', 'carriers', 'content', 'pageTitle'));
+    }
 }
