@@ -287,6 +287,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     if (postalInput) postalInput.value = props.postcode;
                                     suggestionsBox.classList.remove('active');
                                     suggestionsBox.innerHTML = '';
+                                    saveCheckoutData();
                                     unlockShipping();
                                 });
                                 suggestionsBox.appendChild(item);
