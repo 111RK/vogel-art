@@ -622,14 +622,26 @@ class PaymentController
             [(int)$id]
         );
 
-        if (isset($_GET['payment']) && $_GET['payment'] === 'success') {
-            Database::query(
-                "UPDATE orders SET payment_status = 'paid', status = 'confirmed' WHERE id = ?",
-                [(int)$id]
-            );
-            $order['payment_status'] = 'paid';
-            $order['status'] = 'confirmed';
-            self::sendOrderEmails((int)$id);
+        if (isset($_GET['payment'])) {
+            if ($_GET['payment'] === 'success') {
+                Database::query(
+                    "UPDATE orders SET payment_status = 'paid', status = 'confirmed' WHERE id = ?",
+                    [(int)$id]
+                );
+                $order['payment_status'] = 'paid';
+                $order['status'] = 'confirmed';
+                self::sendOrderEmails((int)$id);
+            } elseif ($_GET['payment'] === 'cancel' || $_GET['payment'] === 'failed') {
+                if ($order['payment_status'] === 'pending') {
+                    Database::query(
+                        "UPDATE orders SET payment_status = 'failed', status = 'cancelled' WHERE id = ?",
+                        [(int)$id]
+                    );
+                    $order['payment_status'] = 'failed';
+                    $order['status'] = 'cancelled';
+                    self::restoreStock((int)$id);
+                }
+            }
         }
 
         $bankInfo = [];
