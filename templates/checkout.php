@@ -118,12 +118,12 @@
                     <?php endif; ?>
 
                     <label class="payment-option">
-                        <input type="radio" name="payment_method" value="bank_transfer">
+                        <input type="radio" name="payment_method" value="bank_transfer" checked>
                         <span>Virement bancaire</span>
                     </label>
 
-                    <label class="payment-option">
-                        <input type="radio" name="payment_method" value="in_person" checked>
+                    <label class="payment-option" id="payment-in-person" style="display: none;">
+                        <input type="radio" name="payment_method" value="in_person">
                         <span>Paiement en main propre</span>
                     </label>
                 </div>

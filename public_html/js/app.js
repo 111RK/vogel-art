@@ -144,6 +144,24 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('relay-point-address').value = '';
         document.querySelectorAll('.relay-item.selected').forEach(function (r) { r.classList.remove('selected'); });
 
+        var inPersonOption = document.getElementById('payment-in-person');
+        if (inPersonOption) {
+            var isPickup = radio.value === 'pickup';
+            inPersonOption.style.display = isPickup ? 'flex' : 'none';
+            if (!isPickup) {
+                var inPersonRadio = inPersonOption.querySelector('input[type="radio"]');
+                if (inPersonRadio && inPersonRadio.checked) {
+                    inPersonRadio.checked = false;
+                    var bankTransfer = document.querySelector('input[name="payment_method"][value="bank_transfer"]');
+                    if (bankTransfer) {
+                        bankTransfer.checked = true;
+                        bankTransfer.closest('.payment-option').classList.add('active');
+                    }
+                }
+                inPersonOption.classList.remove('active');
+            }
+        }
+
         updateShippingTotal();
     }
 

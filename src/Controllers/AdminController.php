@@ -300,7 +300,15 @@ class AdminController
         $paymentStatus = $_POST['payment_status'] ?? '';
 
         if ($status) {
+            $oldOrder = Database::fetch("SELECT status FROM orders WHERE id = ?", [(int)$id]);
             Database::query("UPDATE orders SET status = ? WHERE id = ?", [$status, (int)$id]);
+
+            if ($status === 'cancelled' && $oldOrder && $oldOrder['status'] !== 'cancelled') {
+                $items = Database::fetchAll("SELECT painting_id FROM order_items WHERE order_id = ?", [(int)$id]);
+                foreach ($items as $item) {
+                    Database::query("UPDATE paintings SET status = 'available' WHERE id = ? AND status = 'sold'", [$item['painting_id']]);
+                }
+            }
         }
         if ($paymentStatus) {
             Database::query("UPDATE orders SET payment_status = ? WHERE id = ?", [$paymentStatus, (int)$id]);
