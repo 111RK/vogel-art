@@ -64,6 +64,7 @@
                 <h4>Informations</h4>
                 <ul>
                     <li><a href="/cgv">CGV</a></li>
+                    <li><a href="/suivi">Suivi de commande</a></li>
                     <li><a href="/contact">Nous contacter</a></li>
                 </ul>
             </div>

@@ -101,7 +101,7 @@ class Mailer
             </div>
 
             <p style="text-align:center;margin:24px 0;">
-                <a href="' . SITE_URL . '/commande/confirmation/' . $order['id'] . '" style="display:inline-block;background:#C9A96E;color:#FFFFFF;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Voir ma commande</a>
+                <a href="' . SITE_URL . '/suivi" style="display:inline-block;background:#C9A96E;color:#FFFFFF;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Suivre ma commande</a>
             </p>';
 
         self::sendHtml($order['customer_email'], 'Confirmation de commande ' . $order['order_number'] . ' - Vogel Art Gallery', $body);

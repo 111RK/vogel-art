@@ -24,6 +24,8 @@ $router->get('/a-propos', [HomeController::class, 'about']);
 $router->get('/contact', [HomeController::class, 'contact']);
 $router->post('/contact', [HomeController::class, 'contactSubmit']);
 $router->get('/cgv', [HomeController::class, 'cgv']);
+$router->get('/suivi', [ShopController::class, 'trackingForm']);
+$router->post('/suivi', [ShopController::class, 'trackingResult']);
 
 $router->get('/panier', [CartController::class, 'index']);
 $router->post('/panier/ajouter', [CartController::class, 'add']);
