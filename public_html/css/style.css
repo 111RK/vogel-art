@@ -256,34 +256,34 @@ nav a:hover::after {
 }
 
 .painting-sold .image-wrapper img {
-    filter: brightness(0.7) saturate(0.4);
+    filter: brightness(0.9) saturate(0.7);
 }
 
 .painting-sold:hover .image-wrapper img {
-    filter: brightness(0.75) saturate(0.5);
+    filter: brightness(0.95) saturate(0.8);
 }
 
 .sold-banner {
     position: absolute;
-    top: 50%;
-    left: -30%;
-    right: -30%;
-    transform: translateY(-50%) rotate(-35deg);
-    background: rgba(180, 40, 30, 0.85);
+    top: 10px;
+    left: 10px;
+    background: rgba(180, 40, 30, 0.9);
     color: var(--white);
-    text-align: center;
-    font-size: 1.1rem;
+    font-size: 0.75rem;
     font-weight: 700;
-    letter-spacing: 0.15em;
-    padding: 10px 0;
+    letter-spacing: 0.1em;
+    padding: 5px 12px;
+    border-radius: 4px;
     text-transform: uppercase;
     pointer-events: none;
     z-index: 2;
 }
 
 .sold-banner-large {
-    font-size: 1.6rem;
-    padding: 14px 0;
+    font-size: 0.9rem;
+    padding: 7px 16px;
+    top: 14px;
+    left: 14px;
 }
 
 .product-image-sold {
@@ -291,7 +291,7 @@ nav a:hover::after {
 }
 
 .product-image-sold img {
-    filter: brightness(0.75) saturate(0.5);
+    filter: brightness(0.9) saturate(0.75);
 }
 
 .painting-card .card-body {
