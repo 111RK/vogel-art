@@ -447,6 +447,91 @@ class AdminController
         redirect('/admin/utilisateurs');
     }
 
+    public static function faqList(): void
+    {
+        Auth::requireAuth();
+        $faqs = Database::fetchAll("SELECT * FROM faq ORDER BY position ASC");
+        $pageTitle = 'FAQ';
+        $page = 'faq';
+        renderAdmin('faq', compact('faqs', 'pageTitle', 'page'));
+    }
+
+    public static function addFaq(): void
+    {
+        Auth::requireAuth();
+        if (!verify_csrf()) redirect('/admin/faq');
+
+        $question = trim($_POST['question'] ?? '');
+        $answer = trim($_POST['answer'] ?? '');
+        $active = isset($_POST['active']) ? 1 : 0;
+
+        if (empty($question) || empty($answer)) {
+            flash('error', 'La question et la réponse sont obligatoires.');
+            redirect('/admin/faq');
+        }
+
+        $maxPos = Database::fetch("SELECT COALESCE(MAX(position), 0) as max_pos FROM faq");
+        $position = ($maxPos['max_pos'] ?? 0) + 1;
+
+        Database::query(
+            "INSERT INTO faq (question, answer, position, active) VALUES (?, ?, ?, ?)",
+            [$question, $answer, $position, $active]
+        );
+
+        flash('success', 'Question ajoutée.');
+        redirect('/admin/faq');
+    }
+
+    public static function editFaq(string $id): void
+    {
+        Auth::requireAuth();
+        if (!verify_csrf()) redirect('/admin/faq');
+
+        $faq = Database::fetch("SELECT * FROM faq WHERE id = ?", [(int)$id]);
+        if (!$faq) redirect('/admin/faq');
+
+        $question = trim($_POST['question'] ?? '');
+        $answer = trim($_POST['answer'] ?? '');
+        $active = isset($_POST['active']) ? 1 : 0;
+
+        if (empty($question) || empty($answer)) {
+            flash('error', 'La question et la réponse sont obligatoires.');
+            redirect('/admin/faq');
+        }
+
+        Database::query(
+            "UPDATE faq SET question = ?, answer = ?, active = ? WHERE id = ?",
+            [$question, $answer, $active, (int)$id]
+        );
+
+        flash('success', 'Question mise à jour.');
+        redirect('/admin/faq');
+    }
+
+    public static function deleteFaq(string $id): void
+    {
+        Auth::requireAuth();
+        if (!verify_csrf()) redirect('/admin/faq');
+
+        Database::query("DELETE FROM faq WHERE id = ?", [(int)$id]);
+        flash('success', 'Question supprimée.');
+        redirect('/admin/faq');
+    }
+
+    public static function reorderFaq(): void
+    {
+        Auth::requireAuth();
+        if (!verify_csrf()) redirect('/admin/faq');
+
+        $ids = array_filter(array_map('intval', explode(',', $_POST['ids'] ?? '')));
+        foreach ($ids as $position => $id) {
+            Database::query("UPDATE faq SET position = ? WHERE id = ?", [$position + 1, $id]);
+        }
+
+        flash('success', 'Ordre mis à jour.');
+        redirect('/admin/faq');
+    }
+
     public static function sendPacklink(): void
     {
         Auth::requireAuth();

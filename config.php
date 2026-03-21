@@ -15,7 +15,7 @@ define('PUBLIC_PATH', __DIR__ . '/public_html');
 define('UPLOAD_PATH', __DIR__ . '/public_html/uploads');
 define('TEMPLATE_PATH', __DIR__ . '/templates');
 
-define('MAX_UPLOAD_SIZE', 10 * 1024 * 1024);
+define('MAX_UPLOAD_SIZE', 25 * 1024 * 1024);
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'webp']);
 
 

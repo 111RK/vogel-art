@@ -21,6 +21,7 @@
                 <a href="/">Accueil</a>
                 <a href="/boutique">Boutique</a>
                 <a href="/a-propos">À propos</a>
+                <a href="/faq">FAQ</a>
                 <a href="/contact">Contact</a>
                 <a href="/panier" class="cart-link">
                     Panier
@@ -64,6 +65,7 @@
                 <h4>Informations</h4>
                 <ul>
                     <li><a href="/cgv">CGV</a></li>
+                    <li><a href="/faq">FAQ</a></li>
                     <li><a href="/suivi">Suivi de commande</a></li>
                     <li><a href="/contact">Nous contacter</a></li>
                 </ul>

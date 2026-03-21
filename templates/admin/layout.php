@@ -19,6 +19,7 @@
             <a href="/admin" class="<?= ($page ?? '') === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
             <a href="/admin/tableaux" class="<?= ($page ?? '') === 'paintings' ? 'active' : '' ?>">Tableaux</a>
             <a href="/admin/commandes" class="<?= ($page ?? '') === 'orders' ? 'active' : '' ?>">Commandes</a>
+            <a href="/admin/faq" class="<?= ($page ?? '') === 'faq' ? 'active' : '' ?>">FAQ</a>
             <a href="/admin/parametres" class="<?= ($page ?? '') === 'settings' ? 'active' : '' ?>">Paramètres</a>
             <a href="/admin/utilisateurs" class="<?= ($page ?? '') === 'users' ? 'active' : '' ?>">Utilisateurs</a>
         </nav>

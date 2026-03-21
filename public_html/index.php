@@ -24,6 +24,7 @@ $router->get('/a-propos', [HomeController::class, 'about']);
 $router->get('/contact', [HomeController::class, 'contact']);
 $router->post('/contact', [HomeController::class, 'contactSubmit']);
 $router->get('/cgv', [HomeController::class, 'cgv']);
+$router->get('/faq', [HomeController::class, 'faq']);
 $router->get('/suivi', [ShopController::class, 'trackingForm']);
 $router->post('/suivi', [ShopController::class, 'trackingResult']);
 
@@ -65,5 +66,10 @@ $router->get('/admin/utilisateurs', [AdminController::class, 'users']);
 $router->post('/admin/utilisateurs/ajouter', [AdminController::class, 'addUser']);
 $router->post('/admin/utilisateurs/supprimer/{id}', [AdminController::class, 'deleteUser']);
 $router->post('/admin/utilisateurs/password/{id}', [AdminController::class, 'changePassword']);
+$router->get('/admin/faq', [AdminController::class, 'faqList']);
+$router->post('/admin/faq/ajouter', [AdminController::class, 'addFaq']);
+$router->post('/admin/faq/modifier/{id}', [AdminController::class, 'editFaq']);
+$router->post('/admin/faq/supprimer/{id}', [AdminController::class, 'deleteFaq']);
+$router->post('/admin/faq/reorder', [AdminController::class, 'reorderFaq']);
 
 $router->resolve();

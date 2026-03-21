@@ -76,4 +76,12 @@ class HomeController
         $pageTitle = 'Conditions Générales de Vente';
         render('cgv', compact('content', 'pageTitle'));
     }
+
+    public static function faq(): void
+    {
+        $faqs = Database::fetchAll("SELECT * FROM faq WHERE active = 1 ORDER BY position ASC");
+        $content = 'faq';
+        $pageTitle = 'Questions fréquentes';
+        render('faq', compact('faqs', 'content', 'pageTitle'));
+    }
 }
