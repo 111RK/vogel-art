@@ -1,11 +1,15 @@
 <section class="section">
     <div class="container">
         <div class="product-page">
-            <div class="product-image <?= $painting['status'] === 'sold' ? 'product-image-sold' : '' ?>">
+            <div class="product-image <?= $painting['status'] === 'sold' ? 'product-image-sold' : '' ?>" onclick="document.getElementById('img-modal').style.display='flex'" style="cursor:zoom-in;">
                 <img src="/uploads/<?= e($painting['image']) ?>" alt="<?= e($painting['title']) ?>">
                 <?php if ($painting['status'] === 'sold'): ?>
                     <div class="sold-banner sold-banner-large">VENDU</div>
                 <?php endif; ?>
+            </div>
+            <div id="img-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:99999;align-items:center;justify-content:center;cursor:zoom-out;" onclick="this.style.display='none'">
+                <img src="/uploads/<?= e($painting['image']) ?>" alt="<?= e($painting['title']) ?>" style="max-width:95vw;max-height:95vh;object-fit:contain;border-radius:4px;">
+                <button style="position:absolute;top:16px;right:20px;background:none;border:none;color:#fff;font-size:32px;cursor:pointer;line-height:1;" onclick="event.stopPropagation();document.getElementById('img-modal').style.display='none'">&times;</button>
             </div>
             <div class="product-info">
                 <h1><?= e($painting['title']) ?></h1>
