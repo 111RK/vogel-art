@@ -393,7 +393,7 @@ class AdminController
             'source' => 'vogel-art',
         ];
 
-        $ch = curl_init('https://apisandbox.packlink.com/v1/shipments');
+        $ch = curl_init('https://api.packlink.com/v1/shipments');
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,

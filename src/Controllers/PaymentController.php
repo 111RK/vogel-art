@@ -432,6 +432,143 @@ class PaymentController
 
     private static function handlePaypal(int $orderId, float $total): void
     {
+        $settings = Database::fetchAll("SELECT `key`, `value` FROM settings WHERE `key` LIKE 'paypal_%'");
+        $config = [];
+        foreach ($settings as $s) $config[$s['key']] = $s['value'];
+
+        if (empty($config['paypal_client_id']) || empty($config['paypal_secret'])) {
+            flash('error', 'PayPal n\'est pas encore configuré.');
+            redirect('/commande/confirmation/' . $orderId);
+            return;
+        }
+
+        $apiBase = ($config['paypal_mode'] ?? 'sandbox') === 'live'
+            ? 'https://api-m.paypal.com'
+            : 'https://api-m.sandbox.paypal.com';
+
+        $ch = curl_init("$apiBase/v1/oauth2/token");
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_USERPWD => $config['paypal_client_id'] . ':' . $config['paypal_secret'],
+            CURLOPT_POSTFIELDS => 'grant_type=client_credentials',
+        ]);
+        $auth = json_decode(curl_exec($ch), true);
+        curl_close($ch);
+
+        if (empty($auth['access_token'])) {
+            flash('error', 'Erreur d\'authentification PayPal.');
+            redirect('/commande/confirmation/' . $orderId);
+            return;
+        }
+
+        $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [$orderId]);
+
+        $payload = [
+            'intent' => 'CAPTURE',
+            'purchase_units' => [
+                [
+                    'reference_id' => $order['order_number'],
+                    'amount' => [
+                        'currency_code' => 'EUR',
+                        'value' => number_format($total, 2, '.', ''),
+                    ],
+                    'description' => 'Commande Vogel Art ' . $order['order_number'],
+                ],
+            ],
+            'payment_source' => [
+                'paypal' => [
+                    'experience_context' => [
+                        'brand_name' => 'Vogel Art Gallery',
+                        'return_url' => SITE_URL . '/paypal/capture?order_id=' . $orderId,
+                        'cancel_url' => SITE_URL . '/commande/confirmation/' . $orderId . '?payment=cancel',
+                        'user_action' => 'PAY_NOW',
+                    ],
+                ],
+            ],
+        ];
+
+        $ch = curl_init("$apiBase/v2/checkout/orders");
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $auth['access_token'],
+            ],
+            CURLOPT_POSTFIELDS => json_encode($payload),
+        ]);
+        $response = json_decode(curl_exec($ch), true);
+        curl_close($ch);
+
+        if (!empty($response['id'])) {
+            Database::query(
+                "UPDATE orders SET payment_id = ? WHERE id = ?",
+                [$response['id'], $orderId]
+            );
+
+            foreach ($response['links'] ?? [] as $link) {
+                if ($link['rel'] === 'payer-action') {
+                    redirect($link['href']);
+                    return;
+                }
+            }
+        }
+
+        redirect('/commande/confirmation/' . $orderId);
+    }
+
+    public static function paypalCapture(): void
+    {
+        $orderId = (int)($_GET['order_id'] ?? 0);
+        $paypalToken = $_GET['token'] ?? '';
+
+        $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [$orderId]);
+        if (!$order) {
+            redirect('/');
+            return;
+        }
+
+        $settings = Database::fetchAll("SELECT `key`, `value` FROM settings WHERE `key` LIKE 'paypal_%'");
+        $config = [];
+        foreach ($settings as $s) $config[$s['key']] = $s['value'];
+
+        $apiBase = ($config['paypal_mode'] ?? 'sandbox') === 'live'
+            ? 'https://api-m.paypal.com'
+            : 'https://api-m.sandbox.paypal.com';
+
+        $ch = curl_init("$apiBase/v1/oauth2/token");
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_USERPWD => $config['paypal_client_id'] . ':' . $config['paypal_secret'],
+            CURLOPT_POSTFIELDS => 'grant_type=client_credentials',
+        ]);
+        $auth = json_decode(curl_exec($ch), true);
+        curl_close($ch);
+
+        if (!empty($auth['access_token']) && $paypalToken) {
+            $ch = curl_init("$apiBase/v2/checkout/orders/$paypalToken/capture");
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST => true,
+                CURLOPT_HTTPHEADER => [
+                    'Content-Type: application/json',
+                    'Authorization: Bearer ' . $auth['access_token'],
+                ],
+                CURLOPT_POSTFIELDS => '{}',
+            ]);
+            $capture = json_decode(curl_exec($ch), true);
+            curl_close($ch);
+
+            if (($capture['status'] ?? '') === 'COMPLETED') {
+                Database::query(
+                    "UPDATE orders SET payment_status = 'paid', status = 'confirmed' WHERE id = ?",
+                    [$orderId]
+                );
+            }
+        }
+
         redirect('/commande/confirmation/' . $orderId);
     }
 

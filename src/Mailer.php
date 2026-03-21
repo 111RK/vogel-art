@@ -131,8 +131,18 @@ class Mailer
 
         $packlinkBtn = '';
         if (!empty($order['shipping_method']) && $order['shipping_method'] !== 'pickup') {
-            $packlinkBtn = '<p style="text-align:center;margin:16px 0;">
-                <a href="' . SITE_URL . '/admin/commandes/' . $order['id'] . '" style="display:inline-block;background:#2D2D2D;color:#FFFFFF;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Envoyer via Packlink</a>
+            $packlinkRef = '';
+            if (!empty($order['notes'])) {
+                preg_match('/Packlink brouillon: (\S+)/', $order['notes'], $m);
+                $packlinkRef = $m[1] ?? '';
+            }
+            if ($packlinkRef) {
+                $packlinkBtn .= '<p style="text-align:center;margin:16px 0;">
+                    <a href="https://pro.packlink.com/private/shipments/' . e($packlinkRef) . '/checkout" style="display:inline-block;background:#00B4D8;color:#FFFFFF;padding:14px 40px;border-radius:8px;text-decoration:none;font-weight:600;font-size:16px;">📦 Payer le transport sur Packlink</a>
+                </p>';
+            }
+            $packlinkBtn .= '<p style="text-align:center;margin:8px 0;">
+                <a href="' . SITE_URL . '/admin/commandes/' . $order['id'] . '" style="display:inline-block;background:#2D2D2D;color:#FFFFFF;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Voir la commande</a>
             </p>';
         }
 

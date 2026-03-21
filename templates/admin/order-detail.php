@@ -60,21 +60,34 @@
 <div class="admin-card" style="margin-top: 24px;">
     <h3>Expédition Packlink</h3>
     <?php if (!empty($packlinkConfig['packlink_api_key'])): ?>
-        <p style="margin-bottom: 12px;">Créer une expédition via Packlink PRO avec les informations pré-remplies.</p>
-        <div class="form-row" style="margin-bottom: 12px;">
-            <div class="form-group">
-                <label>Poids (kg)</label>
-                <input type="number" step="0.1" min="0.1" id="parcel-weight" value="<?= e($packlinkConfig['default_parcel_weight'] ?? '2') ?>">
+        <?php
+        $packlinkRef = '';
+        if (!empty($order['notes'])) {
+            preg_match('/Packlink brouillon: (\S+)/', $order['notes'], $m);
+            $packlinkRef = $m[1] ?? '';
+        }
+        ?>
+        <?php if ($packlinkRef): ?>
+            <p style="margin-bottom: 12px;">Un brouillon Packlink a été créé automatiquement pour cette commande.</p>
+            <a href="https://pro.packlink.com/private/shipments/<?= e($packlinkRef) ?>/checkout" target="_blank" class="btn btn-primary" style="margin-right: 8px;">Payer le transport sur Packlink</a>
+            <a href="https://pro.packlink.com/private/shipments/<?= e($packlinkRef) ?>" target="_blank" class="btn btn-outline">Voir le brouillon</a>
+        <?php else: ?>
+            <p style="margin-bottom: 12px;">Créer un brouillon d'expédition via Packlink PRO.</p>
+            <div class="form-row" style="margin-bottom: 12px;">
+                <div class="form-group">
+                    <label>Poids (kg)</label>
+                    <input type="number" step="0.1" min="0.1" id="parcel-weight" value="<?= e($packlinkConfig['default_parcel_weight'] ?? '2') ?>">
+                </div>
+                <div class="form-group">
+                    <label>Dimensions L x l x H (cm)</label>
+                    <input type="text" id="parcel-dimensions" value="<?= e($packlinkConfig['default_parcel_dimensions'] ?? '60x50x10') ?>" placeholder="60x50x10">
+                </div>
             </div>
-            <div class="form-group">
-                <label>Dimensions L x l x H (cm)</label>
-                <input type="text" id="parcel-dimensions" value="<?= e($packlinkConfig['default_parcel_dimensions'] ?? '60x50x10') ?>" placeholder="60x50x10">
-            </div>
-        </div>
-        <button type="button" class="btn btn-primary" onclick="sendWithPacklink(<?= $order['id'] ?>)">
-            Envoyer via Packlink
-        </button>
-        <div id="packlink-result" style="margin-top: 12px;"></div>
+            <button type="button" class="btn btn-primary" onclick="sendWithPacklink(<?= $order['id'] ?>)">
+                Créer le brouillon Packlink
+            </button>
+            <div id="packlink-result" style="margin-top: 12px;"></div>
+        <?php endif; ?>
     <?php else: ?>
         <p style="color: var(--text-light);">Configurez votre clé API Packlink PRO dans les <a href="/admin/parametres">paramètres</a> pour activer l'expédition.</p>
     <?php endif; ?>
