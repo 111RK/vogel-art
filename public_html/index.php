@@ -26,6 +26,10 @@ $router->post('/contact', [HomeController::class, 'contactSubmit']);
 $router->get('/cgv', [HomeController::class, 'cgv']);
 $router->get('/faq', [HomeController::class, 'faq']);
 $router->get('/livraison', [HomeController::class, 'shipping']);
+$router->get('/blog', [HomeController::class, 'blog']);
+$router->get('/blog/categorie/{slug}', [HomeController::class, 'blogCategory']);
+$router->get('/blog/{slug}', [HomeController::class, 'blogPost']);
+$router->get('/sitemap.xml', function() { require PUBLIC_PATH . '/sitemap.xml.php'; });
 $router->get('/suivi', [ShopController::class, 'trackingForm']);
 $router->post('/suivi', [ShopController::class, 'trackingResult']);
 
@@ -74,5 +78,11 @@ $router->post('/admin/faq/ajouter', [AdminController::class, 'addFaq']);
 $router->post('/admin/faq/modifier/{id}', [AdminController::class, 'editFaq']);
 $router->post('/admin/faq/supprimer/{id}', [AdminController::class, 'deleteFaq']);
 $router->post('/admin/faq/reorder', [AdminController::class, 'reorderFaq']);
+$router->get('/admin/blog', [AdminController::class, 'blogList']);
+$router->get('/admin/blog/ajouter', [AdminController::class, 'addBlogForm']);
+$router->post('/admin/blog/ajouter', [AdminController::class, 'addBlog']);
+$router->get('/admin/blog/modifier/{id}', [AdminController::class, 'editBlogForm']);
+$router->post('/admin/blog/modifier/{id}', [AdminController::class, 'editBlog']);
+$router->post('/admin/blog/supprimer/{id}', [AdminController::class, 'deleteBlog']);
 
 $router->resolve();

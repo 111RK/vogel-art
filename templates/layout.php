@@ -1,10 +1,21 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KV8NJHE290"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-KV8NJHE290');</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle ?? 'Accueil') ?> - <?= SITE_NAME ?></title>
-    <meta name="description" content="Vogel Art - Tableaux peints à la main, pièces uniques. Art original fait avec passion.">
+    <meta name="description" content="<?= e($metaDescription ?? 'Vogel Art - Tableaux peints à la main au couteau, pièces uniques. Art original fait avec passion.') ?>">
+    <?php if (!empty($ogTags)): ?>
+    <meta property="og:title" content="<?= e($ogTags['title']) ?>">
+    <meta property="og:description" content="<?= e($ogTags['description']) ?>">
+    <meta property="og:url" content="<?= e($ogTags['url']) ?>">
+    <meta property="og:type" content="<?= e($ogTags['type'] ?? 'website') ?>">
+    <meta property="og:site_name" content="<?= SITE_NAME ?>">
+    <?php if (!empty($ogTags['image'])): ?><meta property="og:image" content="<?= e($ogTags['image']) ?>"><?php endif; ?>
+    <meta name="twitter:card" content="summary_large_image">
+    <?php endif; ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
@@ -21,6 +32,7 @@
                 <a href="/">Accueil</a>
                 <a href="/boutique">Boutique</a>
                 <a href="/a-propos">À propos</a>
+                <a href="/blog">Blog</a>
                 <a href="/faq">FAQ</a>
                 <a href="/contact">Contact</a>
                 <a href="/panier" class="cart-link">
@@ -57,6 +69,7 @@
                 <h4>Navigation</h4>
                 <ul>
                     <li><a href="/boutique">Boutique</a></li>
+                    <li><a href="/blog">Blog</a></li>
                     <li><a href="/a-propos">À propos</a></li>
                     <li><a href="/contact">Contact</a></li>
                 </ul>

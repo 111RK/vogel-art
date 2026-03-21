@@ -517,6 +517,148 @@ class AdminController
         redirect('/admin/utilisateurs');
     }
 
+    public static function blogList(): void
+    {
+        Auth::requireAuth();
+        $posts = Database::fetchAll(
+            "SELECT bp.*, bc.name as category_name FROM blog_posts bp LEFT JOIN blog_categories bc ON bp.category_id = bc.id ORDER BY bp.created_at DESC"
+        );
+        $pageTitle = 'Blog';
+        $page = 'blog';
+        renderAdmin('blog', compact('posts', 'pageTitle', 'page'));
+    }
+
+    public static function addBlogForm(): void
+    {
+        Auth::requireAuth();
+        $categories = Database::fetchAll("SELECT * FROM blog_categories ORDER BY name");
+        $pageTitle = 'Ajouter un article';
+        $page = 'blog';
+        renderAdmin('blog-edit', compact('categories', 'pageTitle', 'page'));
+    }
+
+    public static function addBlog(): void
+    {
+        Auth::requireAuth();
+        if (!verify_csrf()) redirect('/admin/blog/ajouter');
+
+        $title = trim($_POST['title'] ?? '');
+        $slug = trim($_POST['slug'] ?? '') ?: slugify($title);
+        $excerpt = trim($_POST['excerpt'] ?? '');
+        $content = $_POST['content'] ?? '';
+        $categoryId = intval($_POST['category_id'] ?? 0) ?: null;
+        $metaDescription = trim($_POST['meta_description'] ?? '');
+        $published = isset($_POST['published']) ? 1 : 0;
+
+        if (empty($title)) {
+            flash('error', 'Le titre est obligatoire.');
+            redirect('/admin/blog/ajouter');
+        }
+
+        $existing = Database::fetch("SELECT id FROM blog_posts WHERE slug = ?", [$slug]);
+        if ($existing) $slug .= '-' . uniqid();
+
+        $image = null;
+        if (!empty($_FILES['image']['name'])) {
+            $image = self::uploadBlogImage($_FILES['image']);
+        }
+
+        Database::query(
+            "INSERT INTO blog_posts (title, slug, excerpt, content, image, category_id, meta_description, published) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [$title, $slug, $excerpt, $content, $image, $categoryId, $metaDescription, $published]
+        );
+
+        flash('success', 'Article créé.');
+        redirect('/admin/blog');
+    }
+
+    public static function editBlogForm(string $id): void
+    {
+        Auth::requireAuth();
+        $post = Database::fetch("SELECT * FROM blog_posts WHERE id = ?", [(int)$id]);
+        if (!$post) redirect('/admin/blog');
+
+        $categories = Database::fetchAll("SELECT * FROM blog_categories ORDER BY name");
+        $pageTitle = 'Modifier : ' . $post['title'];
+        $page = 'blog';
+        renderAdmin('blog-edit', compact('post', 'categories', 'pageTitle', 'page'));
+    }
+
+    public static function editBlog(string $id): void
+    {
+        Auth::requireAuth();
+        if (!verify_csrf()) redirect('/admin/blog');
+
+        $post = Database::fetch("SELECT * FROM blog_posts WHERE id = ?", [(int)$id]);
+        if (!$post) redirect('/admin/blog');
+
+        $title = trim($_POST['title'] ?? '');
+        $slug = trim($_POST['slug'] ?? '') ?: slugify($title);
+        $excerpt = trim($_POST['excerpt'] ?? '');
+        $content = $_POST['content'] ?? '';
+        $categoryId = intval($_POST['category_id'] ?? 0) ?: null;
+        $metaDescription = trim($_POST['meta_description'] ?? '');
+        $published = isset($_POST['published']) ? 1 : 0;
+
+        if (empty($title)) {
+            flash('error', 'Le titre est obligatoire.');
+            redirect('/admin/blog/modifier/' . $id);
+        }
+
+        $existing = Database::fetch("SELECT id FROM blog_posts WHERE slug = ? AND id != ?", [$slug, (int)$id]);
+        if ($existing) $slug .= '-' . uniqid();
+
+        $image = $post['image'];
+        if (!empty($_FILES['image']['name'])) {
+            $newImage = self::uploadBlogImage($_FILES['image']);
+            if ($newImage) {
+                if ($post['image']) {
+                    $oldPath = UPLOAD_PATH . '/' . $post['image'];
+                    if (file_exists($oldPath)) unlink($oldPath);
+                }
+                $image = $newImage;
+            }
+        }
+
+        Database::query(
+            "UPDATE blog_posts SET title = ?, slug = ?, excerpt = ?, content = ?, image = ?, category_id = ?, meta_description = ?, published = ? WHERE id = ?",
+            [$title, $slug, $excerpt, $content, $image, $categoryId, $metaDescription, $published, (int)$id]
+        );
+
+        flash('success', 'Article mis à jour.');
+        redirect('/admin/blog');
+    }
+
+    public static function deleteBlog(string $id): void
+    {
+        Auth::requireAuth();
+
+        $post = Database::fetch("SELECT * FROM blog_posts WHERE id = ?", [(int)$id]);
+        if ($post) {
+            if ($post['image']) {
+                $path = UPLOAD_PATH . '/' . $post['image'];
+                if (file_exists($path)) unlink($path);
+            }
+            Database::query("DELETE FROM blog_posts WHERE id = ?", [(int)$id]);
+            flash('success', 'Article supprimé.');
+        }
+        redirect('/admin/blog');
+    }
+
+    private static function uploadBlogImage(array $file): ?string
+    {
+        if ($file['error'] !== UPLOAD_ERR_OK) return null;
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, ALLOWED_EXTENSIONS)) return null;
+
+        $dir = UPLOAD_PATH . '/blog';
+        if (!is_dir($dir)) mkdir($dir, 0755, true);
+
+        $filename = 'blog/' . uniqid('blog_') . '.' . $ext;
+        move_uploaded_file($file['tmp_name'], UPLOAD_PATH . '/' . $filename);
+        return $filename;
+    }
+
     public static function faqList(): void
     {
         Auth::requireAuth();

@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://vogel-art.fr/sitemap.xml
+
+Disallow: /admin/
+Disallow: /panier
+Disallow: /commande
+Disallow: /api/
+Disallow: /webhook/
