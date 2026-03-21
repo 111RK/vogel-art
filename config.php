@@ -2,7 +2,7 @@
 
 define('DEBUG', false);
 
-define('SITE_URL', 'https://www.vogel-art.fr');
+define('SITE_URL', 'https://vogel-art.fr');
 define('SITE_NAME', 'Vogel Art');
 
 define('DB_HOST', 'localhost');
