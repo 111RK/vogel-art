@@ -1,5 +1,12 @@
 <?php
 
+function dateFr(string $date): string
+{
+    $months = ['', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+    $ts = strtotime($date);
+    return date('d', $ts) . ' ' . $months[(int)date('n', $ts)] . ' ' . date('Y', $ts);
+}
+
 function statusLabel(string $status): string
 {
     $labels = [

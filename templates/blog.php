@@ -34,7 +34,7 @@
                             <?php endif; ?>
                         </a>
                         <div class="blog-card-body">
-                            <time class="blog-card-date" datetime="<?= date('Y-m-d', strtotime($post['created_at'])) ?>"><?= date('d F Y', strtotime($post['created_at'])) ?></time>
+                            <time class="blog-card-date" datetime="<?= date('Y-m-d', strtotime($post['created_at'])) ?>"><?= dateFr($post['created_at']) ?></time>
                             <h2 class="blog-card-title"><a href="/blog/<?= e($post['slug']) ?>"><?= e($post['title']) ?></a></h2>
                             <p class="blog-card-excerpt"><?= e($post['excerpt']) ?></p>
                             <a href="/blog/<?= e($post['slug']) ?>" class="blog-read-more">Lire l'article</a>

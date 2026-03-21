@@ -6,7 +6,7 @@
                 <a href="/blog/categorie/<?= e($post['category_slug']) ?>" class="blog-category-badge"><?= e($post['category_name']) ?></a>
             <?php endif; ?>
             <h1><?= e($post['title']) ?></h1>
-            <time datetime="<?= date('Y-m-d', strtotime($post['created_at'])) ?>"><?= date('d F Y', strtotime($post['created_at'])) ?></time>
+            <time datetime="<?= date('Y-m-d', strtotime($post['created_at'])) ?>"><?= dateFr($post['created_at']) ?></time>
         </div>
     </div>
 </section>
@@ -17,7 +17,7 @@
             <a href="/blog/categorie/<?= e($post['category_slug']) ?>" class="blog-category-badge"><?= e($post['category_name']) ?></a>
         <?php endif; ?>
         <h1><?= e($post['title']) ?></h1>
-        <time datetime="<?= date('Y-m-d', strtotime($post['created_at'])) ?>"><?= date('d F Y', strtotime($post['created_at'])) ?></time>
+        <time datetime="<?= date('Y-m-d', strtotime($post['created_at'])) ?>"><?= dateFr($post['created_at']) ?></time>
     </div>
 </section>
 <?php endif; ?>
