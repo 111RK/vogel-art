@@ -40,6 +40,11 @@
     </div>
 
     <div class="form-group">
+        <label for="video">Vidéo (optionnel, max 100 Mo)</label>
+        <input type="file" id="video" name="video" accept="video/mp4,video/quicktime,video/webm">
+    </div>
+
+    <div class="form-group">
         <label>
             <input type="checkbox" name="featured" value="1"> Mettre en vedette
         </label>

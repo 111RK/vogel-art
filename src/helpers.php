@@ -180,6 +180,25 @@ function createThumbnail(string $path, string $ext, int $maxWidth = 400): void
     }
 }
 
+function uploadVideo(array $file): ?string
+{
+    if ($file['error'] !== UPLOAD_ERR_OK) return null;
+    if ($file['size'] > MAX_VIDEO_SIZE) return null;
+
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (!in_array($ext, ALLOWED_VIDEO_EXTENSIONS)) return null;
+
+    $filename = uniqid('video_') . '.' . $ext;
+    $destination = UPLOAD_PATH . '/' . $filename;
+
+    if (!is_dir(UPLOAD_PATH)) {
+        mkdir(UPLOAD_PATH, 0755, true);
+    }
+
+    move_uploaded_file($file['tmp_name'], $destination);
+    return $filename;
+}
+
 function getCartCount(): int
 {
     return count($_SESSION['cart'] ?? []);

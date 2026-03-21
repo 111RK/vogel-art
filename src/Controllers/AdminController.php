@@ -104,9 +104,14 @@ class AdminController
             $slug .= '-' . uniqid();
         }
 
+        $video = null;
+        if (!empty($_FILES['video']['name'])) {
+            $video = uploadVideo($_FILES['video']);
+        }
+
         Database::query(
-            "INSERT INTO paintings (title, slug, description, price, image, width_cm, height_cm, technique, featured) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [$title, $slug, $description, $price, $image, $widthCm, $heightCm, $technique, $featured]
+            "INSERT INTO paintings (title, slug, description, price, image, video, width_cm, height_cm, technique, featured) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [$title, $slug, $description, $price, $image, $video, $widthCm, $heightCm, $technique, $featured]
         );
 
         flash('success', 'Tableau ajouté avec succès.');
@@ -161,9 +166,22 @@ class AdminController
             }
         }
 
+        $video = $painting['video'] ?? null;
+        if (isset($_POST['remove_video']) && $video) {
+            if (file_exists(UPLOAD_PATH . '/' . $video)) unlink(UPLOAD_PATH . '/' . $video);
+            $video = null;
+        }
+        if (!empty($_FILES['video']['name'])) {
+            $newVideo = uploadVideo($_FILES['video']);
+            if ($newVideo) {
+                if ($video && file_exists(UPLOAD_PATH . '/' . $video)) unlink(UPLOAD_PATH . '/' . $video);
+                $video = $newVideo;
+            }
+        }
+
         Database::query(
-            "UPDATE paintings SET title = ?, description = ?, price = ?, image = ?, width_cm = ?, height_cm = ?, technique = ?, featured = ?, status = ? WHERE id = ?",
-            [$title, $description, $price, $image, $widthCm, $heightCm, $technique, $featured, $status, (int)$id]
+            "UPDATE paintings SET title = ?, description = ?, price = ?, image = ?, video = ?, width_cm = ?, height_cm = ?, technique = ?, featured = ?, status = ? WHERE id = ?",
+            [$title, $description, $price, $image, $video, $widthCm, $heightCm, $technique, $featured, $status, (int)$id]
         );
 
         flash('success', 'Tableau mis à jour.');

@@ -51,6 +51,20 @@
     </div>
 
     <div class="form-group">
+        <label for="video">Vidéo</label>
+        <?php if (!empty($painting['video'])): ?>
+            <div style="margin-bottom: 8px;">
+                <video src="/uploads/<?= e($painting['video']) ?>" style="max-width: 300px; border-radius: 4px;" controls></video>
+                <label style="display: block; margin-top: 4px;">
+                    <input type="checkbox" name="remove_video" value="1"> Supprimer la vidéo
+                </label>
+            </div>
+        <?php endif; ?>
+        <input type="file" id="video" name="video" accept="video/mp4,video/quicktime,video/webm">
+        <small style="color: var(--text-light);">Max 100 Mo - MP4, MOV ou WebM</small>
+    </div>
+
+    <div class="form-group">
         <label>
             <input type="checkbox" name="featured" value="1" <?= $painting['featured'] ? 'checked' : '' ?>> Mettre en vedette
         </label>

@@ -1,0 +1,1 @@
+ALTER TABLE paintings ADD COLUMN `video` VARCHAR(255) DEFAULT NULL AFTER `image`;

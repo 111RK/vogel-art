@@ -17,6 +17,8 @@ define('TEMPLATE_PATH', __DIR__ . '/templates');
 
 define('MAX_UPLOAD_SIZE', 25 * 1024 * 1024);
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'webp']);
+define('ALLOWED_VIDEO_EXTENSIONS', ['mp4', 'mov', 'webm']);
+define('MAX_VIDEO_SIZE', 100 * 1024 * 1024);
 
 
 define('ILOVEIMG_PUBLIC_KEY', 'project_public_8e085d98e76012d6becda70c52049008_e2jCo4f5061531081115f9abfb5f4d11c4cff');
