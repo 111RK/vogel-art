@@ -72,7 +72,9 @@ document.addEventListener('DOMContentLoaded', function () {
         loading.style.display = 'block';
         results.innerHTML = '';
 
-        fetch('/api/relay-points?postal=' + encodeURIComponent(postal) + '&carrier=' + encodeURIComponent(carrier))
+        var addr = addressInput ? addressInput.value : '';
+        var cty = cityInput ? cityInput.value : '';
+        fetch('/api/relay-points?postal=' + encodeURIComponent(postal) + '&carrier=' + encodeURIComponent(carrier) + '&address=' + encodeURIComponent(addr) + '&city=' + encodeURIComponent(cty))
             .then(function (res) { return res.json(); })
             .then(function (data) {
                 loading.style.display = 'none';
@@ -91,10 +93,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     var typeTag = isLocker
                         ? '<span class="relay-type-tag relay-type-locker">Locker 24/7</span>'
                         : '<span class="relay-type-tag relay-type-relay">Relais</span>';
+                    var distHtml = point.distance ? '<span class="relay-distance">' + escapeHtml(point.distance) + '</span>' : '';
                     div.innerHTML =
                         '<input type="radio" name="relay_selection" value="' + escapeAttr(point.id) + '">' +
                         '<div class="relay-info">' +
-                            '<strong>' + escapeHtml(point.name) + typeTag + '</strong>' +
+                            '<strong>' + escapeHtml(point.name) + typeTag + distHtml + '</strong>' +
                             '<span class="relay-address">' + escapeHtml(point.address) + '</span>' +
                             (point.hours ? '<span class="relay-hours">' + escapeHtml(point.hours) + '</span>' : '') +
                         '</div>';

@@ -672,6 +672,14 @@ nav a:hover::after {
     color: var(--text-light);
 }
 
+.relay-distance {
+    float: right;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-light);
+    font-family: 'Inter', sans-serif;
+}
+
 .relay-msg {
     padding: 10px;
     color: var(--text-light);

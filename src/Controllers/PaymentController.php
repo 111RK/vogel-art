@@ -22,6 +22,8 @@ class PaymentController
 
         $postal = trim($_GET['postal'] ?? '');
         $carrier = trim($_GET['carrier'] ?? '');
+        $address = trim($_GET['address'] ?? '');
+        $city = trim($_GET['city'] ?? '');
 
         if (strlen($postal) < 5) {
             echo json_encode(['error' => 'Code postal invalide.']);
@@ -49,24 +51,40 @@ class PaymentController
             }
         }
 
-        usort($allPoints, function ($a, $b) {
-            if ($a['is_locker'] && !$b['is_locker']) return 1;
-            if (!$a['is_locker'] && $b['is_locker']) return -1;
-            return 0;
-        });
+        $customerLat = null;
+        $customerLng = null;
+        if ($address || $city) {
+            $geo = self::geocodeAddress($address, $postal, $city);
+            if ($geo) {
+                $customerLat = $geo['lat'];
+                $customerLng = $geo['lng'];
+            }
+        }
+
+        $pointsList = array_values($allPoints);
+
+        if ($customerLat !== null) {
+            usort($pointsList, function ($a, $b) use ($customerLat, $customerLng) {
+                $distA = self::haversine($customerLat, $customerLng, $a['lat'], $a['lng']);
+                $distB = self::haversine($customerLat, $customerLng, $b['lat'], $b['lng']);
+                return $distA <=> $distB;
+            });
+        }
 
         $points = [];
-        foreach (array_slice(array_values($allPoints), 0, 20) as $point) {
-            $name = $point['name'];
-            if ($point['is_locker']) {
-                $name = 'LOCKER ' . $name;
+        foreach (array_slice($pointsList, 0, 20) as $point) {
+            $dist = '';
+            if ($customerLat !== null) {
+                $km = self::haversine($customerLat, $customerLng, $point['lat'], $point['lng']);
+                $dist = $km < 1 ? round($km * 1000) . ' m' : round($km, 1) . ' km';
             }
             $points[] = [
                 'id' => $point['id'],
-                'name' => $name,
+                'name' => $point['name'],
                 'address' => $point['address'],
                 'hours' => $point['hours'],
                 'type' => $point['is_locker'] ? 'locker' : 'relay',
+                'distance' => $dist,
             ];
         }
 
@@ -75,6 +93,31 @@ class PaymentController
         } else {
             echo json_encode(['error' => 'Aucun point relais trouvé.']);
         }
+    }
+
+    private static function geocodeAddress(string $address, string $postal, string $city): ?array
+    {
+        $q = trim("$address $postal $city");
+        $url = 'https://api-adresse.data.gouv.fr/search/?q=' . urlencode($q) . '&limit=1';
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 5]);
+        $resp = json_decode(curl_exec($ch), true);
+        curl_close($ch);
+
+        if (!empty($resp['features'][0]['geometry']['coordinates'])) {
+            $coords = $resp['features'][0]['geometry']['coordinates'];
+            return ['lng' => $coords[0], 'lat' => $coords[1]];
+        }
+        return null;
+    }
+
+    private static function haversine(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $r = 6371;
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+        $a = sin($dLat / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+        return $r * 2 * atan2(sqrt($a), sqrt(1 - $a));
     }
 
     private static function fetchDropoffs(string $apiKey, int $serviceId, string $postal): array
@@ -118,6 +161,8 @@ class PaymentController
                 'address' => ($point['address'] ?? '') . ', ' . ($point['zip'] ?? $postal) . ' ' . ($point['city'] ?? ''),
                 'hours' => $hours,
                 'is_locker' => $isLocker,
+                'lat' => floatval($point['lat'] ?? 0),
+                'lng' => floatval($point['long'] ?? 0),
             ];
         }
         return $points;
