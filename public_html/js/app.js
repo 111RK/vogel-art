@@ -86,11 +86,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 data.points.forEach(function (point) {
                     var div = document.createElement('label');
-                    div.className = 'relay-item';
+                    var isLocker = point.type === 'locker';
+                    div.className = 'relay-item' + (isLocker ? ' relay-locker' : '');
+                    var typeTag = isLocker
+                        ? '<span class="relay-type-tag relay-type-locker">Locker 24/7</span>'
+                        : '<span class="relay-type-tag relay-type-relay">Relais</span>';
                     div.innerHTML =
                         '<input type="radio" name="relay_selection" value="' + escapeAttr(point.id) + '">' +
                         '<div class="relay-info">' +
-                            '<strong>' + escapeHtml(point.name) + '</strong>' +
+                            '<strong>' + escapeHtml(point.name) + typeTag + '</strong>' +
                             '<span class="relay-address">' + escapeHtml(point.address) + '</span>' +
                             (point.hours ? '<span class="relay-hours">' + escapeHtml(point.hours) + '</span>' : '') +
                         '</div>';

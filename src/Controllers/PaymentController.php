@@ -34,46 +34,93 @@ class PaymentController
             return;
         }
 
-        $serviceId = self::$packlinkServiceIds[$carrier] ?? self::$packlinkServiceIds['mondial_relay'];
+        $serviceIds = [];
+        if ($carrier === 'mondial_relay') {
+            $serviceIds = [30075, 30407];
+        } else {
+            $serviceIds = [self::$packlinkServiceIds[$carrier] ?? 30075];
+        }
 
-        $url = "https://api.packlink.com/v1/dropoffs/$serviceId/FR/$postal";
-
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => [
-                'Authorization: ' . $apiKey['value'],
-            ],
-        ]);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $data = json_decode($response, true);
-
-        if ($httpCode === 200 && is_array($data)) {
-            $points = [];
-            foreach (array_slice($data, 0, 10) as $point) {
-                $hours = '';
-                if (!empty($point['opening_times']['opening_times'])) {
-                    $days = $point['opening_times']['opening_times'];
-                    $todayKey = strtolower(date('l'));
-                    if (isset($days[$todayKey])) {
-                        $hours = "Aujourd'hui : " . $days[$todayKey];
-                    }
-                }
-                $points[] = [
-                    'id' => $point['id'] ?? uniqid(),
-                    'name' => $point['commerce_name'] ?? 'Point Relais',
-                    'address' => ($point['address'] ?? '') . ', ' . ($point['zip'] ?? $postal) . ' ' . ($point['city'] ?? ''),
-                    'hours' => $hours,
-                ];
+        $allPoints = [];
+        foreach ($serviceIds as $serviceId) {
+            $fetched = self::fetchDropoffs($apiKey['value'], $serviceId, $postal);
+            foreach ($fetched as $point) {
+                $allPoints[$point['id']] = $point;
             }
+        }
+
+        usort($allPoints, function ($a, $b) {
+            if ($a['is_locker'] && !$b['is_locker']) return 1;
+            if (!$a['is_locker'] && $b['is_locker']) return -1;
+            return 0;
+        });
+
+        $points = [];
+        foreach (array_slice(array_values($allPoints), 0, 20) as $point) {
+            $name = $point['name'];
+            if ($point['is_locker']) {
+                $name = 'LOCKER ' . $name;
+            }
+            $points[] = [
+                'id' => $point['id'],
+                'name' => $name,
+                'address' => $point['address'],
+                'hours' => $point['hours'],
+                'type' => $point['is_locker'] ? 'locker' : 'relay',
+            ];
+        }
+
+        if (!empty($points)) {
             echo json_encode(['points' => $points]);
         } else {
             echo json_encode(['error' => 'Aucun point relais trouvé.']);
         }
+    }
+
+    private static function fetchDropoffs(string $apiKey, int $serviceId, string $postal): array
+    {
+        $url = "https://api.packlink.com/v1/dropoffs/$serviceId/FR/$postal";
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => ['Authorization: ' . $apiKey],
+            CURLOPT_TIMEOUT => 15,
+        ]);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200) return [];
+
+        $data = json_decode($response, true);
+        if (!is_array($data)) return [];
+
+        $points = [];
+        foreach ($data as $point) {
+            $name = $point['commerce_name'] ?? 'Point Relais';
+            $isLocker = (stripos($name, 'locker') !== false || stripos($name, '24/7') !== false);
+
+            $hours = '';
+            if (!empty($point['opening_times']['opening_times'])) {
+                $days = $point['opening_times']['opening_times'];
+                $todayKey = strtolower(date('l'));
+                if (isset($days[$todayKey])) {
+                    $hours = "Aujourd'hui : " . $days[$todayKey];
+                }
+            }
+            if ($isLocker && empty($hours)) {
+                $hours = 'Accessible 24h/24 7j/7';
+            }
+
+            $points[] = [
+                'id' => $point['id'] ?? uniqid(),
+                'name' => $name,
+                'address' => ($point['address'] ?? '') . ', ' . ($point['zip'] ?? $postal) . ' ' . ($point['city'] ?? ''),
+                'hours' => $hours,
+                'is_locker' => $isLocker,
+            ];
+        }
+        return $points;
     }
 
     public static function process(): void
