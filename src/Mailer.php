@@ -35,8 +35,10 @@ class Mailer
     {
         $itemsHtml = '';
         foreach ($items as $item) {
+            $imgUrl = !empty($item['image']) ? SITE_URL . '/uploads/thumbs/' . $item['image'] : '';
+            $imgHtml = $imgUrl ? '<img src="' . $imgUrl . '" alt="" style="width:60px;height:60px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:10px;">' : '';
             $itemsHtml .= '<tr>
-                <td style="padding:12px;border-bottom:1px solid #E8E4DF;">' . e($item['title']) . '</td>
+                <td style="padding:12px;border-bottom:1px solid #E8E4DF;">' . $imgHtml . e($item['title']) . '</td>
                 <td style="padding:12px;border-bottom:1px solid #E8E4DF;text-align:right;font-weight:600;">' . formatPrice($item['price']) . '</td>
             </tr>';
         }
@@ -111,8 +113,10 @@ class Mailer
 
         $itemsHtml = '';
         foreach ($items as $item) {
+            $imgUrl = !empty($item['image']) ? SITE_URL . '/uploads/thumbs/' . $item['image'] : '';
+            $imgHtml = $imgUrl ? '<img src="' . $imgUrl . '" alt="" style="width:60px;height:60px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:10px;">' : '';
             $itemsHtml .= '<tr>
-                <td style="padding:10px 12px;border-bottom:1px solid #E8E4DF;">' . e($item['title']) . '</td>
+                <td style="padding:10px 12px;border-bottom:1px solid #E8E4DF;">' . $imgHtml . e($item['title']) . '</td>
                 <td style="padding:10px 12px;border-bottom:1px solid #E8E4DF;text-align:right;font-weight:600;">' . formatPrice($item['price']) . '</td>
             </tr>';
         }
