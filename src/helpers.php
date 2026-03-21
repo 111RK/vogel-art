@@ -1,5 +1,27 @@
 <?php
 
+function statusLabel(string $status): string
+{
+    $labels = [
+        'pending' => 'En attente',
+        'paid' => 'Payé',
+        'failed' => 'Échoué',
+        'refunded' => 'Remboursé',
+        'confirmed' => 'Confirmée',
+        'shipped' => 'Expédiée',
+        'delivered' => 'Livrée',
+        'cancelled' => 'Annulée',
+        'available' => 'Disponible',
+        'sold' => 'Vendu',
+        'hidden' => 'Masqué',
+        'stripe' => 'Carte bancaire',
+        'paypal' => 'PayPal',
+        'bank_transfer' => 'Virement bancaire',
+        'in_person' => 'En main propre',
+    ];
+    return $labels[$status] ?? $status;
+}
+
 function render(string $template, array $data = []): void
 {
     extract($data);

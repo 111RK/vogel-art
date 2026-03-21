@@ -19,7 +19,7 @@
         <h3>Commande</h3>
         <p><strong>N° :</strong> <?= e($order['order_number']) ?></p>
         <p><strong>Date :</strong> <?= date('d/m/Y H:i', strtotime($order['created_at'])) ?></p>
-        <p><strong>Mode de paiement :</strong> <?= e($order['payment_method']) ?></p>
+        <p><strong>Mode de paiement :</strong> <?= statusLabel($order['payment_method']) ?></p>
         <?php if (!empty($order['shipping_method'])): ?>
             <p><strong>Livraison :</strong> <?= e(PaymentController::carrierLabel($order['shipping_method'])) ?></p>
             <p><strong>Frais de port :</strong> <?= formatPrice($order['shipping_cost'] ?? 0) ?></p>
@@ -35,7 +35,7 @@
                 <label for="payment_status">Statut paiement</label>
                 <select name="payment_status" id="payment_status">
                     <?php foreach (['pending', 'paid', 'failed', 'refunded'] as $s): ?>
-                        <option value="<?= $s ?>" <?= $order['payment_status'] === $s ? 'selected' : '' ?>><?= $s ?></option>
+                        <option value="<?= $s ?>" <?= $order['payment_status'] === $s ? 'selected' : '' ?>><?= statusLabel($s) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -43,7 +43,7 @@
                 <label for="status">Statut commande</label>
                 <select name="status" id="status">
                     <?php foreach (['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'] as $s): ?>
-                        <option value="<?= $s ?>" <?= $order['status'] === $s ? 'selected' : '' ?>><?= $s ?></option>
+                        <option value="<?= $s ?>" <?= $order['status'] === $s ? 'selected' : '' ?>><?= statusLabel($s) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>

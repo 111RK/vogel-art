@@ -43,8 +43,8 @@
                         <td><a href="/admin/commandes/<?= $order['id'] ?>"><?= e($order['order_number']) ?></a></td>
                         <td><?= e($order['customer_firstname'] . ' ' . $order['customer_lastname']) ?></td>
                         <td><?= formatPrice($order['total']) ?></td>
-                        <td><span class="badge badge-<?= $order['payment_status'] ?>"><?= e($order['payment_status']) ?></span></td>
-                        <td><span class="badge badge-<?= $order['status'] ?>"><?= e($order['status']) ?></span></td>
+                        <td><span class="badge badge-<?= $order['payment_status'] ?>"><?= statusLabel($order['payment_status']) ?></span></td>
+                        <td><span class="badge badge-<?= $order['status'] ?>"><?= statusLabel($order['status']) ?></span></td>
                         <td><?= date('d/m/Y', strtotime($order['created_at'])) ?></td>
                     </tr>
                 <?php endforeach; ?>
