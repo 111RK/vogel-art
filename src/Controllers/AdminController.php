@@ -319,6 +319,18 @@ class AdminController
             }
         }
         if ($paymentStatus) {
+            if ($paymentStatus === 'refunded' && $oldOrder && $oldOrder['payment_status'] !== 'refunded') {
+                $orderForRefund = Database::fetch("SELECT * FROM orders WHERE id = ?", [(int)$id]);
+                if ($orderForRefund && $orderForRefund['payment_method'] === 'paypal') {
+                    $refundOk = PaymentController::refundPaypal((int)$id);
+                    if (!$refundOk) {
+                        flash('error', 'Le remboursement PayPal a échoué. Vérifiez manuellement sur PayPal.');
+                    } else {
+                        flash('success', 'Remboursement PayPal effectué avec succès.');
+                    }
+                }
+            }
+
             Database::query("UPDATE orders SET payment_status = ? WHERE id = ?", [$paymentStatus, (int)$id]);
 
             if ($oldOrder && $paymentStatus !== $oldOrder['payment_status'] && in_array($paymentStatus, ['refunded', 'failed'])) {

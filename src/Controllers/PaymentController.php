@@ -569,6 +569,8 @@ class PaymentController
             return;
         }
 
+        $captureId = $capture['purchase_units'][0]['payments']['captures'][0]['id'] ?? $paypalOrderId;
+
         $postData = $_SESSION['paypal_order_data'] ?? [];
         unset($_SESSION['paypal_order_data']);
 
@@ -609,7 +611,7 @@ class PaymentController
                 $total,
                 $shippingMethod,
                 $shippingCost,
-                $paypalOrderId,
+                $captureId,
                 $notes ?: null,
             ]
         );
@@ -640,6 +642,41 @@ class PaymentController
         header('Content-Type: application/json');
         unset($_SESSION['paypal_order_data']);
         echo json_encode(['redirect' => SITE_URL . '/boutique']);
+    }
+
+    public static function refundPaypal(int $orderId): bool
+    {
+        $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [$orderId]);
+        if (!$order || $order['payment_method'] !== 'paypal' || empty($order['payment_id'])) {
+            return false;
+        }
+
+        $token = self::getPaypalToken();
+        if (!$token) return false;
+
+        $apiBase = self::getPaypalApiBase();
+        $captureId = $order['payment_id'];
+
+        $ch = curl_init("$apiBase/v2/payments/captures/$captureId/refund");
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $token,
+            ],
+            CURLOPT_POSTFIELDS => json_encode([
+                'amount' => [
+                    'value' => number_format($order['total'], 2, '.', ''),
+                    'currency_code' => 'EUR',
+                ],
+            ]),
+        ]);
+        $response = json_decode(curl_exec($ch), true);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        return $httpCode >= 200 && $httpCode < 300 && in_array($response['status'] ?? '', ['COMPLETED', 'PENDING']);
     }
 
     private static function restoreStock(int $orderId): void
