@@ -280,12 +280,20 @@ class PaymentController
             "SELECT oi.*, p.image FROM order_items oi LEFT JOIN paintings p ON oi.painting_id = p.id WHERE oi.order_id = ?",
             [$orderId]
         );
-        Mailer::orderConfirmationToCustomer($order, $orderItems);
-        Mailer::newOrderToMerchant($order, $orderItems);
 
-        if ($shippingMethod !== 'pickup') {
-            self::createPacklinkDraft($order);
-        }
+        try {
+            Mailer::orderConfirmationToCustomer($order, $orderItems);
+        } catch (\Throwable $e) {}
+
+        try {
+            Mailer::newOrderToMerchant($order, $orderItems);
+        } catch (\Throwable $e) {}
+
+        try {
+            if ($shippingMethod !== 'pickup') {
+                self::createPacklinkDraft($order);
+            }
+        } catch (\Throwable $e) {}
 
         switch ($paymentMethod) {
             case 'stripe':

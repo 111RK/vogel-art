@@ -4,13 +4,14 @@ class Mailer
 {
     private static function sendHtml(string $to, string $subject, string $body): bool
     {
+        $encodedSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
         $headers = implode("\r\n", [
             'MIME-Version: 1.0',
             'Content-Type: text/html; charset=UTF-8',
-            'From: Vogel Art Gallery <noreply@vogel-art.fr>',
+            'From: =?UTF-8?B?' . base64_encode('Vogel Art Gallery') . '?= <noreply@vogel-art.fr>',
             'Reply-To: ' . (Database::fetch("SELECT value FROM settings WHERE `key` = 'contact_email'")['value'] ?? 'noreply@vogel-art.fr'),
         ]);
-        return mail($to, $subject, self::wrapLayout($subject, $body), $headers);
+        return mail($to, $encodedSubject, self::wrapLayout($subject, $body), $headers);
     }
 
     private static function wrapLayout(string $title, string $content): string
@@ -171,7 +172,7 @@ class Mailer
 
             ' . $packlinkBtn;
 
-        self::sendHtml($merchantEmail, "\xF0\x9F\x8E\x89 Bravo Olivier ! Tu as une nouvelle commande \xF0\x9F\x96\xBC\xEF\xB8\x8F - " . $order['order_number'], $body);
+        self::sendHtml($merchantEmail, '🎉 Bravo Olivier ! Tu as une nouvelle commande 🖼️ - ' . $order['order_number'], $body);
     }
 
     public static function shippingNotification(array $order, string $trackingNumber): void
