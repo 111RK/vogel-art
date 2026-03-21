@@ -31,9 +31,25 @@ class HomeController
     public static function about(): void
     {
         $aboutText = Database::fetch("SELECT value FROM settings WHERE `key` = 'about_text'");
+        $artistBio = Database::fetch("SELECT value FROM settings WHERE `key` = 'artist_bio'");
+        $contactInfo = [];
+        foreach (['gallery_name', 'owner_firstname', 'owner_lastname', 'contact_photo'] as $k) {
+            $r = Database::fetch("SELECT value FROM settings WHERE `key` = ?", [$k]);
+            $contactInfo[$k] = $r['value'] ?? '';
+        }
+        $timelineRow = Database::fetch("SELECT value FROM settings WHERE `key` = 'timeline_data'");
+        $timeline = [];
+        if (!empty($timelineRow['value'])) {
+            foreach (explode("\n", $timelineRow['value']) as $line) {
+                $parts = array_map('trim', explode('|', $line));
+                if (count($parts) >= 3) {
+                    $timeline[] = ['year' => $parts[0], 'title' => $parts[1], 'description' => $parts[2]];
+                }
+            }
+        }
         $content = 'about';
         $pageTitle = 'À propos';
-        render('about', compact('aboutText', 'content', 'pageTitle'));
+        render('about', compact('aboutText', 'artistBio', 'contactInfo', 'timeline', 'content', 'pageTitle'));
     }
 
     public static function contact(): void
