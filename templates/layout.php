@@ -61,7 +61,7 @@
     <footer>
         <div class="container">
             <div>
-                <div class="footer-brand">Vogel <span>Art</span> Gallery</div>
+                <a href="/"><img src="/img/logo.svg" alt="Vogel Art Gallery" style="height:60px;margin-bottom:12px;"></a>
                 <p>Chaque toile est une pièce unique, peinte à la main avec passion.</p>
             </div>
             <div>
