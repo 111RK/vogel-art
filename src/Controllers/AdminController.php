@@ -847,13 +847,16 @@ class AdminController
     {
         Auth::requireAuth();
 
+        $tab = $_GET['tab'] ?? 'general';
+        if (!in_array($tab, ['general', 'paiement', 'livraison', 'site'])) $tab = 'general';
+
         $settings = Database::fetchAll("SELECT `key`, `value` FROM settings");
         $config = [];
         foreach ($settings as $s) $config[$s['key']] = $s['value'];
 
         $pageTitle = 'Paramètres';
         $page = 'settings';
-        renderAdmin('settings', compact('config', 'pageTitle', 'page'));
+        renderAdmin('settings', compact('config', 'tab', 'pageTitle', 'page'));
     }
 
     public static function saveSettings(): void
@@ -861,17 +864,16 @@ class AdminController
         Auth::requireAuth();
         if (!verify_csrf()) redirect('/admin/parametres');
 
-        $fields = [
-            'stripe_public_key', 'stripe_secret_key',
-            'paypal_client_id', 'paypal_secret', 'paypal_mode',
-            'bank_iban', 'bank_bic', 'bank_name',
-            'contact_email', 'contact_phone',
-            'about_text', 'artist_bio', 'timeline_data', 'shipping_info',
-            'packlink_api_key', 'packlink_sender_name', 'packlink_sender_address', 'packlink_sender_city', 'packlink_sender_postal',
-            'default_parcel_weight', 'default_parcel_dimensions',
-            'shipping_mondial_relay_price', 'shipping_shop2shop_price', 'shipping_ups_price', 'shipping_pickup_price', 'shipping_mondial_relay_domicile_price',
+        $tab = $_POST['tab'] ?? 'general';
+
+        $tabFields = [
+            'general' => ['gallery_name', 'owner_firstname', 'owner_lastname', 'contact_address', 'contact_city', 'contact_postal', 'contact_phone', 'contact_email'],
+            'paiement' => ['stripe_public_key', 'stripe_secret_key', 'paypal_client_id', 'paypal_secret', 'paypal_mode', 'bank_iban', 'bank_bic', 'bank_name'],
+            'livraison' => ['packlink_api_key', 'packlink_sender_name', 'packlink_sender_address', 'packlink_sender_city', 'packlink_sender_postal', 'default_parcel_weight', 'default_parcel_dimensions', 'shipping_mondial_relay_price', 'shipping_shop2shop_price', 'shipping_ups_price', 'shipping_pickup_price', 'shipping_mondial_relay_domicile_price'],
+            'site' => ['about_text', 'artist_bio', 'timeline_data', 'shipping_info'],
         ];
 
+        $fields = $tabFields[$tab] ?? [];
         foreach ($fields as $field) {
             if (isset($_POST[$field])) {
                 Database::query(
@@ -881,22 +883,37 @@ class AdminController
             }
         }
 
-        $checkboxes = [
-            'shipping_mondial_relay_enabled',
-            'shipping_shop2shop_enabled',
-            'shipping_ups_enabled',
-            'shipping_pickup_enabled',
-            'shipping_mondial_relay_domicile_enabled',
-        ];
-        foreach ($checkboxes as $cb) {
-            $val = isset($_POST[$cb]) ? '1' : '0';
-            Database::query(
-                "INSERT INTO settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?",
-                [$cb, $val, $val]
-            );
+        if ($tab === 'livraison') {
+            $checkboxes = ['shipping_mondial_relay_enabled', 'shipping_shop2shop_enabled', 'shipping_ups_enabled', 'shipping_pickup_enabled', 'shipping_mondial_relay_domicile_enabled'];
+            foreach ($checkboxes as $cb) {
+                $val = isset($_POST[$cb]) ? '1' : '0';
+                Database::query("INSERT INTO settings (`key`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `value` = ?", [$cb, $val, $val]);
+            }
+        }
+
+        if ($tab === 'general') {
+            if (isset($_POST['remove_contact_photo'])) {
+                $old = Database::fetch("SELECT value FROM settings WHERE `key` = 'contact_photo'");
+                if ($old && $old['value'] && file_exists(UPLOAD_PATH . '/' . $old['value'])) {
+                    unlink(UPLOAD_PATH . '/' . $old['value']);
+                }
+                Database::query("INSERT INTO settings (`key`, `value`) VALUES ('contact_photo', '') ON DUPLICATE KEY UPDATE `value` = ''");
+            }
+            if (!empty($_FILES['contact_photo']['name'])) {
+                $ext = strtolower(pathinfo($_FILES['contact_photo']['name'], PATHINFO_EXTENSION));
+                if (in_array($ext, ALLOWED_EXTENSIONS) && $_FILES['contact_photo']['error'] === UPLOAD_ERR_OK) {
+                    $old = Database::fetch("SELECT value FROM settings WHERE `key` = 'contact_photo'");
+                    if ($old && $old['value'] && file_exists(UPLOAD_PATH . '/' . $old['value'])) {
+                        unlink(UPLOAD_PATH . '/' . $old['value']);
+                    }
+                    $filename = 'contact_' . uniqid() . '.' . $ext;
+                    move_uploaded_file($_FILES['contact_photo']['tmp_name'], UPLOAD_PATH . '/' . $filename);
+                    Database::query("INSERT INTO settings (`key`, `value`) VALUES ('contact_photo', ?) ON DUPLICATE KEY UPDATE `value` = ?", [$filename, $filename]);
+                }
+            }
         }
 
         flash('success', 'Paramètres sauvegardés.');
-        redirect('/admin/parametres');
+        redirect('/admin/parametres?tab=' . $tab);
     }
 }

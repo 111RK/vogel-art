@@ -22,7 +22,6 @@ $router->get('/boutique', [ShopController::class, 'index']);
 $router->get('/tableau/{slug}', [ShopController::class, 'show']);
 $router->get('/a-propos', [HomeController::class, 'about']);
 $router->get('/contact', [HomeController::class, 'contact']);
-$router->post('/contact', [HomeController::class, 'contactSubmit']);
 $router->get('/cgv', [HomeController::class, 'cgv']);
 $router->get('/faq', [HomeController::class, 'faq']);
 $router->get('/livraison', [HomeController::class, 'shipping']);

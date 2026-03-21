@@ -836,14 +836,57 @@ footer ul a:hover {
 }
 
 .about-page,
-.contact-page {
-    max-width: 700px;
-    margin: 40px auto;
+.contact-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+    margin-top: 32px;
 }
 
-.about-page h1,
-.contact-page h1 {
+.contact-detail {
     margin-bottom: 24px;
+}
+
+.contact-detail strong {
+    display: block;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-light);
+    margin-bottom: 4px;
+}
+
+.contact-detail p {
+    margin: 2px 0;
+    color: var(--text);
+}
+
+.contact-detail a {
+    color: var(--gold-dark);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.contact-detail a:hover {
+    text-decoration: underline;
+}
+
+.contact-photo img {
+    width: 100%;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.about-page h1 {
+    margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+    .contact-layout {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
 }
 
 .about-page p {

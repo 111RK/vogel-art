@@ -38,36 +38,15 @@ class HomeController
 
     public static function contact(): void
     {
+        $keys = ['gallery_name', 'owner_firstname', 'owner_lastname', 'contact_address', 'contact_city', 'contact_postal', 'contact_phone', 'contact_email', 'contact_photo'];
+        $contactInfo = [];
+        foreach ($keys as $k) {
+            $row = Database::fetch("SELECT value FROM settings WHERE `key` = ?", [$k]);
+            $contactInfo[$k] = $row['value'] ?? '';
+        }
         $content = 'contact';
         $pageTitle = 'Contact';
-        render('contact', compact('content', 'pageTitle'));
-    }
-
-    public static function contactSubmit(): void
-    {
-        if (!verify_csrf()) {
-            flash('error', 'Erreur de sécurité, veuillez réessayer.');
-            redirect('/contact');
-        }
-
-        $name = trim($_POST['name'] ?? '');
-        $email = trim($_POST['email'] ?? '');
-        $message = trim($_POST['message'] ?? '');
-
-        if (empty($name) || empty($email) || empty($message)) {
-            flash('error', 'Tous les champs sont obligatoires.');
-            redirect('/contact');
-        }
-
-        $contactEmail = Database::fetch("SELECT value FROM settings WHERE `key` = 'contact_email'");
-        $to = $contactEmail['value'] ?? 'admin@vogel-art.fr';
-
-        $headers = "From: $email\r\nReply-To: $email\r\nContent-Type: text/plain; charset=UTF-8";
-        $subject = "Contact Vogel Art - $name";
-        mail($to, $subject, $message, $headers);
-
-        flash('success', 'Votre message a bien été envoyé. Merci !');
-        redirect('/contact');
+        render('contact', compact('contactInfo', 'content', 'pageTitle'));
     }
 
     public static function cgv(): void

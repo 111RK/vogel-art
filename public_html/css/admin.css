@@ -1,3 +1,31 @@
+.settings-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto;
+}
+
+.settings-tab {
+    padding: 12px 24px;
+    color: var(--text-light);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.settings-tab:hover {
+    color: var(--text);
+}
+
+.settings-tab.active {
+    color: var(--gold-dark);
+    border-bottom-color: var(--gold);
+}
+
 .admin-body {
     display: flex;
     min-height: 100vh;
