@@ -43,7 +43,7 @@
         <?php require TEMPLATE_PATH . '/admin/' . $content . '.php'; ?>
     </main>
 
-    <nav id="mobile-nav" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #E8E4DF;z-index:99999;padding:4px 0;padding-bottom:max(4px,env(safe-area-inset-bottom));box-shadow:0 -2px 10px rgba(0,0,0,0.06);align-items:flex-end;">
+    <nav id="mobile-nav" style="display:flex;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #E8E4DF;z-index:99999;padding:4px 0;padding-bottom:max(4px,env(safe-area-inset-bottom));box-shadow:0 -2px 10px rgba(0,0,0,0.06);align-items:flex-end;">
         <a href="/admin" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;color:<?= ($page ?? '') === 'dashboard' ? '#A8853E' : '#6B6B6B' ?>;font-size:10px;text-decoration:none;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             Accueil
@@ -67,12 +67,14 @@
 
     <script>
     (function(){
-        if(window.innerWidth <= 1024){
-            var nav = document.getElementById('mobile-nav');
-            nav.style.display = 'flex';
-            document.querySelector('.admin-sidebar').style.display = 'none';
-            document.querySelector('.admin-main').style.marginLeft = '0';
-            document.querySelector('.admin-main').style.paddingBottom = '90px';
+        var nav = document.getElementById('mobile-nav');
+        var sidebar = document.querySelector('.admin-sidebar');
+        var main = document.querySelector('.admin-main');
+        if(window.innerWidth > 1024){
+            if(nav) nav.style.display = 'none';
+        } else {
+            if(sidebar) sidebar.style.display = 'none';
+            if(main) { main.style.marginLeft = '0'; main.style.paddingBottom = '90px'; }
         }
     })();
     </script>
