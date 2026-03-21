@@ -9,69 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css?v=<?= filemtime(PUBLIC_PATH . '/css/style.css') ?>">
     <link rel="stylesheet" href="/css/admin.css?v=<?= filemtime(PUBLIC_PATH . '/css/admin.css') ?>">
-    <style>
-    @media (max-width: 1024px) {
-        .admin-sidebar { display: none !important; }
-        .admin-topbar { display: none !important; }
-        .admin-main { margin-left: 0 !important; padding-bottom: 90px !important; }
-        .admin-bottom-nav {
-            display: flex !important;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #fff;
-            border-top: 1px solid #E8E4DF;
-            z-index: 9999;
-            padding: 4px 0;
-            padding-bottom: max(4px, env(safe-area-inset-bottom));
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
-            align-items: flex-end;
-        }
-        .admin-bottom-nav a {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-            padding: 6px 0;
-            color: #6B6B6B;
-            font-size: 0.6rem;
-            text-decoration: none;
-        }
-        .admin-bottom-nav a.active { color: #A8853E; }
-        .admin-bottom-nav a.active svg { stroke: #A8853E; }
-        .admin-bottom-nav a svg { width: 22px; height: 22px; stroke: #6B6B6B; }
-        .bottom-nav-add {
-            position: relative;
-            top: -16px;
-            background: #C9A96E !important;
-            color: #fff !important;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 14px rgba(201,169,110,0.45);
-            flex: 0 0 50px !important;
-            padding: 0 !important;
-            margin: 0 4px;
-        }
-        .bottom-nav-add svg { stroke: #fff !important; width: 26px !important; height: 26px !important; }
-        .bottom-nav-add span { display: none; }
-    }
-    </style>
 </head>
 <body class="admin-body">
-    <div class="admin-topbar">
-        <button class="admin-hamburger" onclick="document.querySelector('.admin-sidebar').classList.toggle('open')">
-            <span></span><span></span><span></span>
-        </button>
-        <a href="/admin" class="admin-topbar-logo">Vogel <span>Art</span></a>
-        <span class="admin-topbar-title"><?= e($pageTitle ?? 'Admin') ?></span>
-    </div>
-    <div class="admin-overlay" onclick="document.querySelector('.admin-sidebar').classList.remove('open')"></div>
     <aside class="admin-sidebar">
         <div class="admin-logo">
             <a href="/admin">Vogel <span>Art</span> Gallery</a>
@@ -104,28 +43,39 @@
         <?php require TEMPLATE_PATH . '/admin/' . $content . '.php'; ?>
     </main>
 
-    <nav class="admin-bottom-nav">
-        <a href="/admin" class="<?= ($page ?? '') === 'dashboard' ? 'active' : '' ?>">
+    <nav id="mobile-nav" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #E8E4DF;z-index:99999;padding:4px 0;padding-bottom:max(4px,env(safe-area-inset-bottom));box-shadow:0 -2px 10px rgba(0,0,0,0.06);align-items:flex-end;">
+        <a href="/admin" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;color:<?= ($page ?? '') === 'dashboard' ? '#A8853E' : '#6B6B6B' ?>;font-size:10px;text-decoration:none;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            <span>Accueil</span>
+            Accueil
         </a>
-        <a href="/admin/tableaux" class="<?= ($page ?? '') === 'paintings' ? 'active' : '' ?>">
+        <a href="/admin/tableaux" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;color:<?= ($page ?? '') === 'paintings' ? '#A8853E' : '#6B6B6B' ?>;font-size:10px;text-decoration:none;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span>Tableaux</span>
+            Tableaux
         </a>
-        <a href="/admin/tableaux/ajouter" class="bottom-nav-add">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <a href="/admin/tableaux/ajouter" style="position:relative;top:-16px;background:#C9A96E;width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(201,169,110,0.45);flex:0 0 50px;margin:0 4px;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </a>
-        <a href="/admin/commandes" class="<?= ($page ?? '') === 'orders' ? 'active' : '' ?>">
+        <a href="/admin/commandes" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;color:<?= ($page ?? '') === 'orders' ? '#A8853E' : '#6B6B6B' ?>;font-size:10px;text-decoration:none;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-            <span>Commandes</span>
+            Commandes
         </a>
-        <a href="/admin/parametres" class="<?= ($page ?? '') === 'settings' ? 'active' : '' ?>">
+        <a href="/admin/parametres" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;color:<?= ($page ?? '') === 'settings' ? '#A8853E' : '#6B6B6B' ?>;font-size:10px;text-decoration:none;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            <span>Réglages</span>
+            Réglages
         </a>
     </nav>
 
+    <script>
+    (function(){
+        if(window.innerWidth <= 1024){
+            var nav = document.getElementById('mobile-nav');
+            nav.style.display = 'flex';
+            document.querySelector('.admin-sidebar').style.display = 'none';
+            document.querySelector('.admin-main').style.marginLeft = '0';
+            document.querySelector('.admin-main').style.paddingBottom = '90px';
+        }
+    })();
+    </script>
     <script src="/js/admin.js?v=<?= filemtime(PUBLIC_PATH . '/js/admin.js') ?>"></script>
 </body>
 </html>
