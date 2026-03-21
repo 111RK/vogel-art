@@ -889,7 +889,7 @@ footer ul a:hover {
 .artist-bio {
     max-width: 700px;
     margin: 0 auto;
-    text-align: center;
+    text-align: justify;
     color: var(--text);
     font-size: 1.02rem;
     line-height: 1.9;
