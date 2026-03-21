@@ -81,17 +81,21 @@ function uploadImage(array $file): ?string
         mkdir(UPLOAD_PATH, 0755, true);
     }
 
-    $imageInfo = getimagesize($file['tmp_name']);
-    if ($imageInfo[0] > 1920) {
-        $resized = resizeImage($file['tmp_name'], $ext, 1920);
+    move_uploaded_file($file['tmp_name'], $destination);
+
+    if (!empty(ILOVEIMG_PUBLIC_KEY)) {
+        $upscaler = new ILoveImgUpscaler();
+        $upscaler->upscale($destination, 2);
+    }
+
+    $imageInfo = getimagesize($destination);
+    if ($imageInfo && $imageInfo[0] > 1920) {
+        $resized = resizeImage($destination, $ext, 1920);
         if ($resized) {
             file_put_contents($destination, $resized);
-            createThumbnail($destination, $ext);
-            return $filename;
         }
     }
 
-    move_uploaded_file($file['tmp_name'], $destination);
     createThumbnail($destination, $ext);
 
     return $filename;

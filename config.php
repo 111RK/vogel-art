@@ -19,6 +19,9 @@ define('MAX_UPLOAD_SIZE', 10 * 1024 * 1024);
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'webp']);
 
 
+define('ILOVEIMG_PUBLIC_KEY', 'project_public_8e085d98e76012d6becda70c52049008_e2jCo4f5061531081115f9abfb5f4d11c4cff');
+define('ILOVEIMG_SECRET_KEY', 'secret_key_6a2e3025b7da1e43cf34587def57c7ca_YwwPkf56c2338c4448822caa7e90bc8706a27');
+
 define('STRIPE_PUBLIC_KEY', '');
 define('STRIPE_SECRET_KEY', '');
 
