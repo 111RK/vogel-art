@@ -8,6 +8,7 @@ require_once ROOT_PATH . '/src/Auth.php';
 require_once ROOT_PATH . '/src/helpers.php';
 require_once ROOT_PATH . '/src/TextGenerator.php';
 require_once ROOT_PATH . '/src/ILoveImgUpscaler.php';
+require_once ROOT_PATH . '/src/Mailer.php';
 require_once ROOT_PATH . '/src/Controllers/HomeController.php';
 require_once ROOT_PATH . '/src/Controllers/ShopController.php';
 require_once ROOT_PATH . '/src/Controllers/CartController.php';

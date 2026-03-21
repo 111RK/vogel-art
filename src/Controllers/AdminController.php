@@ -315,7 +315,14 @@ class AdminController
         }
 
         $tracking = trim($_POST['shipping_tracking'] ?? '');
+        $oldOrder = Database::fetch("SELECT shipping_tracking FROM orders WHERE id = ?", [(int)$id]);
+        $oldTracking = $oldOrder['shipping_tracking'] ?? '';
         Database::query("UPDATE orders SET shipping_tracking = ? WHERE id = ?", [$tracking ?: null, (int)$id]);
+
+        if ($tracking && $tracking !== $oldTracking) {
+            $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [(int)$id]);
+            Mailer::shippingNotification($order, $tracking);
+        }
 
         flash('success', 'Statut mis à jour.');
         redirect('/admin/commandes/' . $id);
@@ -407,6 +414,8 @@ class AdminController
                 "UPDATE orders SET shipping_tracking = ?, status = 'shipped' WHERE id = ?",
                 [$response['reference'], $orderId]
             );
+            $updatedOrder = Database::fetch("SELECT * FROM orders WHERE id = ?", [$orderId]);
+            Mailer::shippingNotification($updatedOrder, $response['reference']);
             echo json_encode([
                 'success' => true,
                 'reference' => $response['reference'],

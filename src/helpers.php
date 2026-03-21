@@ -18,6 +18,11 @@ function statusLabel(string $status): string
         'paypal' => 'PayPal',
         'bank_transfer' => 'Virement bancaire',
         'in_person' => 'En main propre',
+        'mondial_relay' => 'Mondial Relay - Point Relais',
+        'shop2shop' => 'Chronopost - Shop2Shop',
+        'ups' => 'UPS - Access Point',
+        'mondial_relay_domicile' => 'Mondial Relay - Domicile',
+        'pickup' => 'Retrait en main propre',
     ];
     return $labels[$status] ?? $status;
 }

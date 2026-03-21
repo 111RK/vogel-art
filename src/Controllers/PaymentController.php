@@ -275,6 +275,18 @@ class PaymentController
 
         $_SESSION['cart'] = [];
 
+        $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [$orderId]);
+        $orderItems = Database::fetchAll(
+            "SELECT oi.*, p.image FROM order_items oi LEFT JOIN paintings p ON oi.painting_id = p.id WHERE oi.order_id = ?",
+            [$orderId]
+        );
+        Mailer::orderConfirmationToCustomer($order, $orderItems);
+        Mailer::newOrderToMerchant($order, $orderItems);
+
+        if ($shippingMethod !== 'pickup') {
+            self::createPacklinkDraft($order);
+        }
+
         switch ($paymentMethod) {
             case 'stripe':
                 self::handleStripe($orderId, $total);
@@ -292,6 +304,76 @@ class PaymentController
     public static function carrierLabel(string $key): string
     {
         return self::$carrierLabels[$key] ?? $key;
+    }
+
+    private static function createPacklinkDraft(array $order): void
+    {
+        $settings = Database::fetchAll("SELECT `key`, `value` FROM settings WHERE `key` LIKE 'packlink_%' OR `key` LIKE 'default_parcel_%'");
+        $config = [];
+        foreach ($settings as $s) $config[$s['key']] = $s['value'];
+
+        if (empty($config['packlink_api_key'])) return;
+
+        $serviceId = self::$packlinkServiceIds[$order['shipping_method']] ?? null;
+        if (!$serviceId) return;
+
+        $dims = explode('x', strtolower($config['default_parcel_dimensions'] ?? '60x50x10'));
+
+        $payload = [
+            'service_id' => $serviceId,
+            'from' => [
+                'name' => $config['packlink_sender_name'] ?? 'Vogel Art Gallery',
+                'surname' => '',
+                'street1' => $config['packlink_sender_address'] ?? '',
+                'zip_code' => $config['packlink_sender_postal'] ?? '',
+                'city' => $config['packlink_sender_city'] ?? '',
+                'country' => 'FR',
+                'email' => Database::fetch("SELECT value FROM settings WHERE `key` = 'contact_email'")['value'] ?? '',
+            ],
+            'to' => [
+                'name' => $order['customer_firstname'],
+                'surname' => $order['customer_lastname'],
+                'street1' => $order['shipping_address'],
+                'zip_code' => $order['shipping_postal'],
+                'city' => $order['shipping_city'],
+                'country' => 'FR',
+                'email' => $order['customer_email'],
+                'phone' => $order['customer_phone'] ?? '',
+            ],
+            'packages' => [
+                [
+                    'weight' => floatval($config['default_parcel_weight'] ?? 2),
+                    'length' => intval($dims[0] ?? 60),
+                    'width' => intval($dims[1] ?? 50),
+                    'height' => intval($dims[2] ?? 10),
+                ],
+            ],
+            'content' => 'Tableau - ' . $order['order_number'],
+            'contentvalue' => floatval($order['total']),
+            'source' => 'custom',
+        ];
+
+        $ch = curl_init('https://api.packlink.com/v1/shipments');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Authorization: ' . $config['packlink_api_key'],
+            ],
+            CURLOPT_POSTFIELDS => json_encode($payload),
+            CURLOPT_TIMEOUT => 15,
+        ]);
+
+        $response = json_decode(curl_exec($ch), true);
+        curl_close($ch);
+
+        if (!empty($response['reference'])) {
+            Database::query(
+                "UPDATE orders SET notes = CONCAT(COALESCE(notes, ''), ?) WHERE id = ?",
+                ["\nPacklink brouillon: " . $response['reference'], $order['id']]
+            );
+        }
     }
 
     private static function handleStripe(int $orderId, float $total): void
