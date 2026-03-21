@@ -58,7 +58,12 @@ $router->post('/admin/api/upscale-image', [AdminController::class, 'upscaleImage
 $router->get('/admin/commandes', [AdminController::class, 'orders']);
 $router->get('/admin/commandes/{id}', [AdminController::class, 'orderDetail']);
 $router->post('/admin/commandes/{id}/statut', [AdminController::class, 'updateOrderStatus']);
+$router->post('/admin/commandes/purger', [AdminController::class, 'purgeCancelledOrders']);
 $router->get('/admin/parametres', [AdminController::class, 'settings']);
 $router->post('/admin/parametres', [AdminController::class, 'saveSettings']);
+$router->get('/admin/utilisateurs', [AdminController::class, 'users']);
+$router->post('/admin/utilisateurs/ajouter', [AdminController::class, 'addUser']);
+$router->post('/admin/utilisateurs/supprimer/{id}', [AdminController::class, 'deleteUser']);
+$router->post('/admin/utilisateurs/password/{id}', [AdminController::class, 'changePassword']);
 
 $router->resolve();

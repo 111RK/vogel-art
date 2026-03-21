@@ -355,6 +355,98 @@ class AdminController
         redirect('/admin/commandes/' . $id);
     }
 
+    public static function purgeCancelledOrders(): void
+    {
+        Auth::requireAuth();
+        if (!verify_csrf()) redirect('/admin/commandes');
+
+        $cancelled = Database::fetchAll("SELECT id FROM orders WHERE status = 'cancelled'");
+        foreach ($cancelled as $o) {
+            Database::query("DELETE FROM order_items WHERE order_id = ?", [$o['id']]);
+            Database::query("DELETE FROM orders WHERE id = ?", [$o['id']]);
+        }
+
+        flash('success', count($cancelled) . ' commande(s) annulée(s) supprimée(s).');
+        redirect('/admin/commandes');
+    }
+
+    public static function users(): void
+    {
+        Auth::requireAuth();
+        $users = Database::fetchAll("SELECT id, name, email, created_at FROM admin_users ORDER BY id");
+        $pageTitle = 'Utilisateurs';
+        $page = 'users';
+        renderAdmin('users', compact('users', 'pageTitle', 'page'));
+    }
+
+    public static function addUser(): void
+    {
+        Auth::requireAuth();
+        if (!verify_csrf()) redirect('/admin/utilisateurs');
+
+        $name = trim($_POST['name'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+
+        if (empty($name) || empty($email) || empty($password)) {
+            flash('error', 'Tous les champs sont obligatoires.');
+            redirect('/admin/utilisateurs');
+        }
+
+        if (strlen($password) < 6) {
+            flash('error', 'Le mot de passe doit faire au moins 6 caractères.');
+            redirect('/admin/utilisateurs');
+        }
+
+        $existing = Database::fetch("SELECT id FROM admin_users WHERE email = ?", [$email]);
+        if ($existing) {
+            flash('error', 'Un utilisateur avec cet email existe déjà.');
+            redirect('/admin/utilisateurs');
+        }
+
+        Database::query(
+            "INSERT INTO admin_users (name, email, password) VALUES (?, ?, ?)",
+            [$name, $email, password_hash($password, PASSWORD_DEFAULT)]
+        );
+
+        flash('success', 'Utilisateur ajouté.');
+        redirect('/admin/utilisateurs');
+    }
+
+    public static function deleteUser(string $id): void
+    {
+        Auth::requireAuth();
+
+        if ((int)$id === ($_SESSION['admin_id'] ?? 0)) {
+            flash('error', 'Vous ne pouvez pas supprimer votre propre compte.');
+            redirect('/admin/utilisateurs');
+        }
+
+        Database::query("DELETE FROM admin_users WHERE id = ?", [(int)$id]);
+        flash('success', 'Utilisateur supprimé.');
+        redirect('/admin/utilisateurs');
+    }
+
+    public static function changePassword(string $id): void
+    {
+        Auth::requireAuth();
+        if (!verify_csrf()) redirect('/admin/utilisateurs');
+
+        $password = $_POST['password'] ?? '';
+        if (strlen($password) < 6) {
+            flash('error', 'Le mot de passe doit faire au moins 6 caractères.');
+            redirect('/admin/utilisateurs');
+        }
+
+        Database::query(
+            "UPDATE admin_users SET password = ? WHERE id = ?",
+            [password_hash($password, PASSWORD_DEFAULT), (int)$id]
+        );
+
+        flash('success', 'Mot de passe modifié.');
+        redirect('/admin/utilisateurs');
+    }
+
     public static function sendPacklink(): void
     {
         Auth::requireAuth();

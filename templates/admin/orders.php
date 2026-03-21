@@ -1,3 +1,16 @@
+<?php
+$cancelledCount = 0;
+foreach ($orders as $o) if ($o['status'] === 'cancelled') $cancelledCount++;
+?>
+<?php if ($cancelledCount > 0): ?>
+    <div style="margin-bottom: 16px; text-align: right;">
+        <form method="POST" action="/admin/commandes/purger" style="display: inline;" onsubmit="return confirm('Supprimer définitivement les <?= $cancelledCount ?> commande(s) annulée(s) ?')">
+            <?= csrf_field() ?>
+            <button type="submit" class="btn btn-sm btn-danger">Supprimer les commandes annulées (<?= $cancelledCount ?>)</button>
+        </form>
+    </div>
+<?php endif; ?>
+
 <?php if (empty($orders)): ?>
     <div class="empty-state">
         <h2>Aucune commande</h2>
