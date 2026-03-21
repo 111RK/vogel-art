@@ -1,8 +1,11 @@
 <section class="section">
     <div class="container">
         <div class="product-page">
-            <div class="product-image">
+            <div class="product-image <?= $painting['status'] === 'sold' ? 'product-image-sold' : '' ?>">
                 <img src="/uploads/<?= e($painting['image']) ?>" alt="<?= e($painting['title']) ?>">
+                <?php if ($painting['status'] === 'sold'): ?>
+                    <div class="sold-banner sold-banner-large">VENDU</div>
+                <?php endif; ?>
             </div>
             <div class="product-info">
                 <h1><?= e($painting['title']) ?></h1>
@@ -36,6 +39,8 @@
                         <input type="hidden" name="painting_id" value="<?= $painting['id'] ?>">
                         <button type="submit" class="btn btn-primary">Ajouter au panier</button>
                     </form>
+                <?php else: ?>
+                    <p style="color: var(--text-light); font-style: italic; margin-top: 12px;">Cette oeuvre a trouvé son propriétaire.</p>
                 <?php endif; ?>
             </div>
         </div>
@@ -45,9 +50,12 @@
                 <h2 class="section-title">Vous aimerez aussi</h2>
                 <div class="paintings-grid">
                     <?php foreach ($related as $item): ?>
-                        <a href="/tableau/<?= e($item['slug']) ?>" class="painting-card">
+                        <a href="/tableau/<?= e($item['slug']) ?>" class="painting-card <?= $item['status'] === 'sold' ? 'painting-sold' : '' ?>">
                             <div class="image-wrapper">
                                 <img src="/uploads/thumbs/<?= e($item['image']) ?>" alt="<?= e($item['title']) ?>" loading="lazy">
+                                <?php if ($item['status'] === 'sold'): ?>
+                                    <div class="sold-banner">VENDU</div>
+                                <?php endif; ?>
                             </div>
                             <div class="card-body">
                                 <h3><?= e($item['title']) ?></h3>

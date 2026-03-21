@@ -10,9 +10,12 @@
         <?php else: ?>
             <div class="paintings-grid">
                 <?php foreach ($paintings as $painting): ?>
-                    <a href="/tableau/<?= e($painting['slug']) ?>" class="painting-card">
+                    <a href="/tableau/<?= e($painting['slug']) ?>" class="painting-card <?= $painting['status'] === 'sold' ? 'painting-sold' : '' ?>">
                         <div class="image-wrapper">
                             <img src="/uploads/thumbs/<?= e($painting['image']) ?>" alt="<?= e($painting['title']) ?>" loading="lazy">
+                            <?php if ($painting['status'] === 'sold'): ?>
+                                <div class="sold-banner">VENDU</div>
+                            <?php endif; ?>
                         </div>
                         <div class="card-body">
                             <h3><?= e($painting['title']) ?></h3>

@@ -4,7 +4,7 @@ class ShopController
     public static function index(): void
     {
         $paintings = Database::fetchAll(
-            "SELECT * FROM paintings WHERE status = 'available' ORDER BY created_at DESC"
+            "SELECT * FROM paintings WHERE status IN ('available', 'sold') ORDER BY status ASC, created_at DESC"
         );
         $content = 'shop';
         $pageTitle = 'Boutique';
@@ -25,7 +25,7 @@ class ShopController
         }
 
         $related = Database::fetchAll(
-            "SELECT * FROM paintings WHERE status = 'available' AND id != ? ORDER BY RAND() LIMIT 4",
+            "SELECT * FROM paintings WHERE status IN ('available', 'sold') AND id != ? ORDER BY RAND() LIMIT 4",
             [$painting['id']]
         );
 

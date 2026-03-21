@@ -4,10 +4,10 @@ class HomeController
     public static function index(): void
     {
         $featured = Database::fetchAll(
-            "SELECT * FROM paintings WHERE status = 'available' AND featured = 1 ORDER BY created_at DESC LIMIT 6"
+            "SELECT * FROM paintings WHERE status IN ('available', 'sold') AND featured = 1 ORDER BY created_at DESC LIMIT 6"
         );
         $recent = Database::fetchAll(
-            "SELECT * FROM paintings WHERE status = 'available' ORDER BY created_at DESC LIMIT 8"
+            "SELECT * FROM paintings WHERE status IN ('available', 'sold') ORDER BY created_at DESC LIMIT 8"
         );
         $artistBioRow = Database::fetch("SELECT value FROM settings WHERE `key` = 'artist_bio'");
         $artistBio = $artistBioRow['value'] ?? '';

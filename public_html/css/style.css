@@ -240,6 +240,7 @@ nav a:hover::after {
     aspect-ratio: 4/5;
     overflow: hidden;
     background: var(--bg-warm);
+    position: relative;
 }
 
 .painting-card img {
@@ -247,10 +248,50 @@ nav a:hover::after {
     height: 100%;
     object-fit: cover;
     transition: transform 0.4s;
+    filter: brightness(1.08);
 }
 
 .painting-card:hover img {
     transform: scale(1.05);
+}
+
+.painting-sold .image-wrapper img {
+    filter: brightness(0.7) saturate(0.4);
+}
+
+.painting-sold:hover .image-wrapper img {
+    filter: brightness(0.75) saturate(0.5);
+}
+
+.sold-banner {
+    position: absolute;
+    top: 50%;
+    left: -30%;
+    right: -30%;
+    transform: translateY(-50%) rotate(-35deg);
+    background: rgba(180, 40, 30, 0.85);
+    color: var(--white);
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    padding: 10px 0;
+    text-transform: uppercase;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.sold-banner-large {
+    font-size: 1.6rem;
+    padding: 14px 0;
+}
+
+.product-image-sold {
+    position: relative;
+}
+
+.product-image-sold img {
+    filter: brightness(0.75) saturate(0.5);
 }
 
 .painting-card .card-body {
@@ -288,6 +329,7 @@ nav a:hover::after {
 
 .product-image img {
     width: 100%;
+    filter: brightness(1.08);
 }
 
 .product-info h1 {
@@ -776,13 +818,53 @@ footer ul a:hover {
     line-height: 1.8;
 }
 
+.artist-section {
+    background: var(--bg-warm);
+}
+
+.artist-block {
+    max-width: 750px;
+    margin: 0 auto;
+    position: relative;
+    padding: 40px 48px;
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+}
+
+.artist-accent {
+    width: 60px;
+    height: 3px;
+    background: var(--gold);
+    margin: 0 auto 24px;
+    border-radius: 2px;
+}
+
+.artist-accent-bottom {
+    margin: 24px auto 0;
+}
+
+.artist-block .section-title {
+    margin-bottom: 24px;
+}
+
+.artist-block .section-title::after {
+    display: none;
+}
+
 .artist-bio {
     max-width: 700px;
     margin: 0 auto;
     text-align: center;
-    color: var(--text-light);
-    font-size: 1.05rem;
-    line-height: 1.8;
+    color: var(--text);
+    font-size: 1.02rem;
+    line-height: 1.9;
+}
+
+@media (max-width: 768px) {
+    .artist-block {
+        padding: 24px 20px;
+    }
 }
 
 .timeline {
