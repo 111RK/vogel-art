@@ -575,10 +575,33 @@ class PaymentController
                     [$orderId]
                 );
                 self::sendOrderEmails($orderId);
+                redirect('/commande/confirmation/' . $orderId . '?payment=success');
+                return;
+            } else {
+                Database::query(
+                    "UPDATE orders SET payment_status = 'failed', status = 'cancelled' WHERE id = ?",
+                    [$orderId]
+                );
+                self::restoreStock($orderId);
+                redirect('/commande/confirmation/' . $orderId . '?payment=failed');
+                return;
             }
         }
 
-        redirect('/commande/confirmation/' . $orderId);
+        Database::query(
+            "UPDATE orders SET payment_status = 'failed', status = 'cancelled' WHERE id = ?",
+            [$orderId]
+        );
+        self::restoreStock($orderId);
+        redirect('/commande/confirmation/' . $orderId . '?payment=failed');
+    }
+
+    private static function restoreStock(int $orderId): void
+    {
+        $items = Database::fetchAll("SELECT painting_id FROM order_items WHERE order_id = ?", [$orderId]);
+        foreach ($items as $item) {
+            Database::query("UPDATE paintings SET status = 'available' WHERE id = ? AND status = 'sold'", [$item['painting_id']]);
+        }
     }
 
     public static function confirmation(string $id): void
