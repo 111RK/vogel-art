@@ -9,6 +9,59 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css?v=<?= filemtime(PUBLIC_PATH . '/css/style.css') ?>">
     <link rel="stylesheet" href="/css/admin.css?v=<?= filemtime(PUBLIC_PATH . '/css/admin.css') ?>">
+    <style>
+    @media (max-width: 1024px) {
+        .admin-sidebar { display: none !important; }
+        .admin-topbar { display: none !important; }
+        .admin-main { margin-left: 0 !important; padding-bottom: 90px !important; }
+        .admin-bottom-nav {
+            display: flex !important;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-top: 1px solid #E8E4DF;
+            z-index: 9999;
+            padding: 4px 0;
+            padding-bottom: max(4px, env(safe-area-inset-bottom));
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+            align-items: flex-end;
+        }
+        .admin-bottom-nav a {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 6px 0;
+            color: #6B6B6B;
+            font-size: 0.6rem;
+            text-decoration: none;
+        }
+        .admin-bottom-nav a.active { color: #A8853E; }
+        .admin-bottom-nav a.active svg { stroke: #A8853E; }
+        .admin-bottom-nav a svg { width: 22px; height: 22px; stroke: #6B6B6B; }
+        .bottom-nav-add {
+            position: relative;
+            top: -16px;
+            background: #C9A96E !important;
+            color: #fff !important;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(201,169,110,0.45);
+            flex: 0 0 50px !important;
+            padding: 0 !important;
+            margin: 0 4px;
+        }
+        .bottom-nav-add svg { stroke: #fff !important; width: 26px !important; height: 26px !important; }
+        .bottom-nav-add span { display: none; }
+    }
+    </style>
 </head>
 <body class="admin-body">
     <div class="admin-topbar">
