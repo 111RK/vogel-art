@@ -299,6 +299,8 @@ class AdminController
         $status = $_POST['status'] ?? '';
         $paymentStatus = $_POST['payment_status'] ?? '';
 
+        $oldOrder = Database::fetch("SELECT status, payment_status FROM orders WHERE id = ?", [(int)$id]);
+
         if ($status) {
             Database::query("UPDATE orders SET status = ? WHERE id = ?", [$status, (int)$id]);
 
@@ -308,9 +310,23 @@ class AdminController
                     Database::query("UPDATE paintings SET status = 'available' WHERE id = ? AND status = 'sold'", [$item['painting_id']]);
                 }
             }
+
+            if ($oldOrder && $status !== $oldOrder['status']) {
+                try {
+                    $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [(int)$id]);
+                    Mailer::orderStatusNotification($order, $status);
+                } catch (\Throwable $e) {}
+            }
         }
         if ($paymentStatus) {
             Database::query("UPDATE orders SET payment_status = ? WHERE id = ?", [$paymentStatus, (int)$id]);
+
+            if ($oldOrder && $paymentStatus !== $oldOrder['payment_status'] && in_array($paymentStatus, ['refunded', 'failed'])) {
+                try {
+                    $order = Database::fetch("SELECT * FROM orders WHERE id = ?", [(int)$id]);
+                    Mailer::orderStatusNotification($order, $paymentStatus);
+                } catch (\Throwable $e) {}
+            }
         }
 
         $tracking = trim($_POST['shipping_tracking'] ?? '');

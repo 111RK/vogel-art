@@ -211,4 +211,94 @@ class Mailer
 
         self::sendHtml($order['customer_email'], 'Votre colis est en route ! - ' . $order['order_number'], $body);
     }
+
+    public static function orderStatusNotification(array $order, string $newStatus): void
+    {
+        $configs = [
+            'cancelled' => [
+                'icon' => '&#10007;',
+                'color' => '#C44536',
+                'title' => 'Commande annulée',
+                'message' => 'Votre commande a été annulée. Si vous n\'êtes pas à l\'origine de cette annulation, n\'hésitez pas à nous contacter.',
+                'subject' => 'Commande annulée',
+            ],
+            'failed' => [
+                'icon' => '&#9888;',
+                'color' => '#C44536',
+                'title' => 'Échec du paiement',
+                'message' => 'Le paiement de votre commande n\'a pas pu être effectué. Vous pouvez réessayer ou nous contacter pour choisir un autre mode de paiement.',
+                'subject' => 'Échec du paiement',
+            ],
+            'refunded' => [
+                'icon' => '&#8634;',
+                'color' => '#7B1FA2',
+                'title' => 'Commande remboursée',
+                'message' => 'Votre commande a été remboursée. Le montant sera crédité sur votre compte dans les prochains jours.',
+                'subject' => 'Commande remboursée',
+            ],
+            'confirmed' => [
+                'icon' => '&#10003;',
+                'color' => '#4A7C59',
+                'title' => 'Commande confirmée',
+                'message' => 'Votre paiement a bien été reçu. Nous préparons votre commande avec soin.',
+                'subject' => 'Commande confirmée',
+            ],
+            'shipped' => [
+                'icon' => '&#128230;',
+                'color' => '#1565C0',
+                'title' => 'Commande expédiée',
+                'message' => 'Votre commande a été remise au transporteur. Vous recevrez un email avec le numéro de suivi.',
+                'subject' => 'Commande expédiée',
+            ],
+            'delivered' => [
+                'icon' => '&#127881;',
+                'color' => '#4A7C59',
+                'title' => 'Commande livrée',
+                'message' => 'Votre commande a été livrée. Nous espérons que votre tableau vous plaît ! N\'hésitez pas à nous laisser un avis.',
+                'subject' => 'Commande livrée',
+            ],
+        ];
+
+        $cfg = $configs[$newStatus] ?? null;
+        if (!$cfg) return;
+
+        $body = '
+            <div style="text-align:center;margin-bottom:24px;">
+                <span style="font-size:48px;color:' . $cfg['color'] . ';">' . $cfg['icon'] . '</span>
+            </div>
+            <h1 style="font-family:Georgia,serif;font-size:24px;margin:0 0 8px;color:#2D2D2D;text-align:center;">' . $cfg['title'] . '</h1>
+            <p style="color:#6B6B6B;margin:0 0 24px;text-align:center;">Commande n° <strong style="color:#2D2D2D;">' . e($order['order_number']) . '</strong></p>
+
+            <div style="background:#F5F0EB;border-radius:8px;padding:20px;margin:24px 0;text-align:center;">
+                <p style="margin:0;font-size:15px;color:#2D2D2D;">' . $cfg['message'] . '</p>
+            </div>
+
+            <div style="background:#FFFFFF;border:1px solid #E8E4DF;border-radius:8px;padding:16px;margin:16px 0;">
+                <p style="margin:4px 0;"><strong>Total :</strong> ' . formatPrice($order['total']) . '</p>
+                <p style="margin:4px 0;"><strong>Paiement :</strong> ' . statusLabel($order['payment_method']) . '</p>
+                ' . (!empty($order['shipping_method']) ? '<p style="margin:4px 0;"><strong>Livraison :</strong> ' . statusLabel($order['shipping_method']) . '</p>' : '') . '
+            </div>
+
+            <p style="text-align:center;margin:24px 0;">
+                <a href="' . SITE_URL . '/contact" style="display:inline-block;background:#C9A96E;color:#FFFFFF;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Nous contacter</a>
+            </p>';
+
+        self::sendHtml($order['customer_email'], $cfg['subject'] . ' - ' . $order['order_number'], $body);
+
+        $merchantEmail = Database::fetch("SELECT value FROM settings WHERE `key` = 'contact_email'")['value'] ?? '';
+        if ($merchantEmail) {
+            $merchantBody = '
+                <h1 style="font-family:Georgia,serif;font-size:24px;margin:0 0 8px;color:#2D2D2D;">Changement de statut</h1>
+                <p style="margin:0 0 16px;">La commande <strong>' . e($order['order_number']) . '</strong> est passée en <strong style="color:' . $cfg['color'] . ';">' . $cfg['title'] . '</strong></p>
+                <div style="background:#F5F0EB;border-radius:8px;padding:16px;margin:16px 0;">
+                    <p style="margin:4px 0;"><strong>Client :</strong> ' . e($order['customer_firstname'] . ' ' . $order['customer_lastname']) . '</p>
+                    <p style="margin:4px 0;"><strong>Email :</strong> ' . e($order['customer_email']) . '</p>
+                    <p style="margin:4px 0;"><strong>Total :</strong> ' . formatPrice($order['total']) . '</p>
+                </div>
+                <p style="text-align:center;margin:16px 0;">
+                    <a href="' . SITE_URL . '/admin/commandes/' . $order['id'] . '" style="display:inline-block;background:#2D2D2D;color:#FFFFFF;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;">Voir la commande</a>
+                </p>';
+            self::sendHtml($merchantEmail, $cfg['title'] . ' - ' . $order['order_number'], $merchantBody);
+        }
+    }
 }

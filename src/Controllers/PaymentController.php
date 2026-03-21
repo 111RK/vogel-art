@@ -640,6 +640,7 @@ class PaymentController
                     $order['payment_status'] = 'failed';
                     $order['status'] = 'cancelled';
                     self::restoreStock((int)$id);
+                    try { Mailer::orderStatusNotification($order, 'failed'); } catch (\Throwable $e) {}
                 }
             }
         }
