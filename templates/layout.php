@@ -31,6 +31,7 @@
             <nav>
                 <a href="/">Accueil</a>
                 <a href="/boutique">Boutique</a>
+                <a href="/a-propos">À propos</a>
                 <a href="/blog">Blog</a>
                 <a href="/faq">FAQ</a>
                 <a href="/contact">Contact</a>
